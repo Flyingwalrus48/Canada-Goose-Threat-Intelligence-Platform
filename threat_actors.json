@@ -1,0 +1,15 @@
+{
+  "PETA": {
+    "full_name": "People for the Ethical Treatment of Animals",
+    "category": "Activist Organization",
+    "threat_to_cg": "High (Reputational and Physical)",
+    "known_ttps": [
+      "Store entrance blockades",
+      "Loud-speaker protests",
+      "Celebrity-backed social media campaigns",
+      "Undercover investigations/videos",
+      "Targeting of executives and board members online"
+    ],
+    "notes": "Primary activist threat actor. Campaigns are well-funded, professionally organized, and designed for maximum media impact."
+  }
+}

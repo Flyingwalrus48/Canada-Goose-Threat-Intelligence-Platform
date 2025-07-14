@@ -1,0 +1,42 @@
+[
+  {
+    "date": "2025-06-04",
+    "type": "Legal/Financial",
+    "title": "Arbitration Award against Former Supplier",
+    "details": "Canada Goose to take ~$30M USD charge following arbitration loss. Monitor for investor reaction and media sentiment.",
+    "location": "Global",
+    "source": "Press Release 6-K"
+  },
+  {
+    "date": "2025-07-15",
+    "type": "Activism/Physical Security",
+    "title": "PETA Announces 'Winter of Discontent' Campaign",
+    "details": "Activist group PETA announces planned protests targeting Canada Goose flagship stores in London, Paris, and New York, starting in October. TTPs likely include store entrance blockades.",
+    "location": "EMEA/North America",
+    "source": "Simulated OSINT"
+  },
+  {
+    "date": "2025-07-20",
+    "type": "Geopolitical/Market Risk",
+    "title": "Canada-China Trade Tensions Escalate",
+    "details": "New Canadian policy on luxury goods trade with China has sparked nationalist backlash on Weibo. Mentions of #BoycottCanadaGoose are trending.",
+    "location": "China",
+    "source": "Simulated SOCMINT"
+  },
+  {
+    "date": "2025-08-01",
+    "type": "Organized Retail Crime",
+    "title": "ORC Ring Targets High-Value Retail in NYC",
+    "details": "NYPD reports an increase in organized retail crime targeting luxury apparel stores in SoHo. Tactics include coordinated smash-and-grab thefts by groups of 5-10 individuals.",
+    "location": "New York, NY",
+    "source": "Simulated Law Enforcement Bulletin"
+  },
+  {
+    "date": "2025-08-05",
+    "type": "Cyber / Dark Web",
+    "title": "Dark Web Chatter Mentions CG Customer Data",
+    "details": "Monitoring of dark web forums reveals threat actors discussing the potential value of Canada Goose customer data for phishing campaigns. No breach confirmed, but this represents a pre-attack indicator.",
+    "location": "Global",
+    "source": "Simulated Dark Web Monitoring"
+  }
+]

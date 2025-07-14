@@ -1,0 +1,20 @@
+{
+  "Medical Evacuation": [
+    "1. Immediately contact International SOS at +1-215-XXX-XXXX.",
+    "2. Contact the CG Global Security Operations Center (GSOC).",
+    "3. Secure traveler's passport and essential documents.",
+    "4. ISOS will coordinate with pre-vetted local hospitals and arrange transport."
+  ],
+  "Shelter-in-Place (Civil Unrest / Active Threat)": [
+    "1. Move to a pre-identified safe room away from windows and doors.",
+    "2. Lock and barricade doors.",
+    "3. Silence mobile devices and maintain noise discipline.",
+    "4. Await further instruction from the GSOC or local authorities."
+  ],
+  "Political Unrest / Protests": [
+    "1. Do not engage with or film protest activity.",
+    "2. Avoid wearing company-branded clothing.",
+    "3. Reroute travel to avoid affected areas completely.",
+    "4. Monitor local news and follow GSOC directives on movement."
+  ]
+}

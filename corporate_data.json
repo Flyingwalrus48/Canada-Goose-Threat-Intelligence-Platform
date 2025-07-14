@@ -1,0 +1,59 @@
+{
+  "store_locations": {
+    "total_stores": 74,
+    "regions": {
+      "North America": [
+        "Toronto, ON",
+        "New York, NY",
+        "Chicago, IL",
+        "Vancouver, BC"
+      ],
+      "Asia-Pacific": [
+        "Beijing",
+        "Shanghai",
+        "Hong Kong",
+        "Tokyo"
+      ],
+      "EMEA": [
+        "London, UK",
+        "Paris, France",
+        "Milan, Italy",
+        "Dublin, Ireland"
+      ]
+    }
+  },
+  "stated_risk_factors": [
+    "Activist Protests targeting retail locations",
+    "Counterfeiting diluting brand value",
+    "Geopolitical Tensions impacting market access in Greater China",
+    "Supply Chain Disruptions from key material sourcing",
+    "Changes in consumer discretionary spending"
+  ],
+  "key_financials": {
+    "focus_market": "Greater China",
+    "revenue_from_greater_china_pct": 17.7,
+    "DTC_revenue_pct": 69.8
+  },
+  "baseline_threat_assessments": {
+    "New York, NY": {
+      "Crime": "Medium",
+      "Terrorism": "Low",
+      "Civil Unrest": "Medium"
+    },
+    "London, UK": {
+      "Crime": "Medium",
+      "Terrorism": "Medium",
+      "Civil Unrest": "Medium"
+    },
+    "Paris, France": {
+      "Crime": "Medium",
+      "Terrorism": "Medium",
+      "Civil Unrest": "High"
+    },
+    "Beijing": {
+      "Crime": "Low",
+      "Terrorism": "Low",
+      "Civil Unrest": "Low (Monitored)"
+    }
+  }
+}
