@@ -6,9 +6,7 @@ This is a functional prototype of a bespoke Global Security Threat Intelligence 
 
 This platform is not intended to replace existing enterprise solutions but to serve as a tangible demonstration of my end-to-end analytical process. It proves my ability to translate raw data into predictive intelligence that directly supports business objectives.
 
-Live Demo Link: [Link to your deployed Streamlit app - Highly Recommended]
-
-(A sample dashboard view showing the global asset map and I&W tracker.)
+Live Demo Link:https://canada-goose-threat-intelligence-platform-ngsbbyjhifvgj7ssua4q.streamlit.app/
 
 2. Core Intelligence Focus
 Based on a thorough analysis of Canada Goose's SEC filings, this platform is focused on monitoring and mitigating two of the company's most acute and unique threat vectors:
