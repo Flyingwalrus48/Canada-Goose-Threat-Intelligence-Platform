@@ -1,14 +1,11 @@
-# app_stable.py - Canada Goose Global Security Intelligence Platform
-# Stable Enterprise Version - Guaranteed to work on Streamlit Cloud
+# app_enhanced.py - Canada Goose Global Security Intelligence Platform
+# Working version with basic Streamlit components only
 
 import streamlit as st
 import pandas as pd
 import json
-import plotly.express as px
-import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
-import numpy as np
 
 # --- CONFIGURATION & CONSTANTS ---
 BRAND_COLORS = {
@@ -44,190 +41,184 @@ BUSINESS_CRITICAL_LOCATIONS = {
     "Toronto": {"revenue_impact": 25.0, "criticality": "CRITICAL"}
 }
 
-# --- RELIABLE CSS LOADING ---
+# --- ENHANCED CSS STYLING ---
 def load_custom_css():
-    """Reliable CSS loading with inline fallback."""
-    try:
-        with open('style.css', 'r', encoding='utf-8') as f:
-            css_content = f.read()
-        st.markdown(f"<style>{css_content}</style>", unsafe_allow_html=True)
-    except:
-        # Fallback inline CSS - guaranteed to work
-        st.markdown("""
-        <style>
-        /* Professional Inline Styling */
-        .main {
-            background-color: #F8F9FA;
-            font-family: 'Arial', sans-serif;
-        }
-        
-        .main-header {
-            background: linear-gradient(135deg, #000000 0%, #333333 100%);
-            color: #FFFFFF;
-            padding: 2rem;
-            border-radius: 15px;
-            margin-bottom: 2rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        
-        .main-header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin: 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .main-header p {
-            font-size: 1.2rem;
-            margin: 0.5rem 0 0 0;
-            opacity: 0.9;
-        }
-        
-        .risk-card {
-            background: #FFFFFF;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            margin-bottom: 1rem;
-            border-left: 5px solid;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .risk-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-        }
-        
-        .risk-critical { border-left-color: #FF4444; }
-        .risk-high { border-left-color: #FF8C00; }
-        .risk-medium { border-left-color: #FFD700; }
-        .risk-low { border-left-color: #32CD32; }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        .status-critical { background-color: #FF4444; }
-        .status-high { background-color: #FF8C00; }
-        .status-medium { background-color: #FFD700; }
-        .status-low { background-color: #32CD32; }
-        .status-red { background-color: #FF4444; }
-        .status-yellow { background-color: #FFD700; }
-        .status-green { background-color: #32CD32; }
-        
-        .metric-container {
-            background: #FFFFFF;
-            padding: 1.5rem;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: transform 0.2s ease;
-        }
-        
-        .metric-container:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-        }
-        
-        .metric-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #2C3E50;
-            margin: 0;
-        }
-        
-        .metric-label {
-            font-size: 1rem;
-            color: #6C757D;
-            margin: 0.5rem 0 0 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .alert-container {
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            border-left: 4px solid;
-        }
-        
-        .alert-warning {
-            background-color: #FFF3CD;
-            border-left-color: #FFD700;
-            color: #856404;
-        }
-        
-        .alert-danger {
-            background-color: #F8D7DA;
-            border-left-color: #FF4444;
-            color: #721C24;
-        }
-        
-        .alert-success {
-            background-color: #D4EDDA;
-            border-left-color: #32CD32;
-            color: #155724;
-        }
-        
-        .lav-intelligence-card {
-            background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin: 1rem 0;
-            box-shadow: 0 8px 25px rgba(142, 68, 173, 0.3);
-        }
-        
-        .precedent-card {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin: 1rem 0;
-            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
-        }
-        
-        .travel-brief-header {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        
-        .intelligence-summary {
-            background: #2c3e50;
-            color: white;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 0.5rem 0;
-        }
-        
-        .real-time-indicator {
-            background: #32CD32;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        </style>
-        """, unsafe_allow_html=True)
+    """Professional CSS styling for Canada Goose branding."""
+    st.markdown(f"""
+    <style>
+    /* Professional Canada Goose Styling */
+    .main {{
+        background-color: {BRAND_COLORS["background_gray"]};
+        font-family: 'Arial', 'Segoe UI', sans-serif;
+    }}
+    
+    .main-header {{
+        background: linear-gradient(135deg, {BRAND_COLORS["primary_black"]} 0%, #333333 100%);
+        color: {BRAND_COLORS["primary_white"]};
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        text-align: center;
+    }}
+    
+    .main-header h1 {{
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }}
+    
+    .main-header p {{
+        font-size: 1.2rem;
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+    }}
+    
+    .risk-card {{
+        background: {BRAND_COLORS["card_gray"]};
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        margin-bottom: 1rem;
+        border-left: 5px solid;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }}
+    
+    .risk-card:hover {{
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }}
+    
+    .risk-critical {{ border-left-color: {BRAND_COLORS["critical_red"]}; }}
+    .risk-high {{ border-left-color: {BRAND_COLORS["high_orange"]}; }}
+    .risk-medium {{ border-left-color: {BRAND_COLORS["medium_yellow"]}; }}
+    .risk-low {{ border-left-color: {BRAND_COLORS["low_green"]}; }}
+    
+    .status-indicator {{
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }}
+    
+    .status-critical {{ background-color: {BRAND_COLORS["critical_red"]}; }}
+    .status-high {{ background-color: {BRAND_COLORS["high_orange"]}; }}
+    .status-medium {{ background-color: {BRAND_COLORS["medium_yellow"]}; }}
+    .status-low {{ background-color: {BRAND_COLORS["low_green"]}; }}
+    .status-red {{ background-color: {BRAND_COLORS["critical_red"]}; }}
+    .status-yellow {{ background-color: {BRAND_COLORS["medium_yellow"]}; }}
+    .status-green {{ background-color: {BRAND_COLORS["low_green"]}; }}
+    
+    .metric-container {{
+        background: {BRAND_COLORS["card_gray"]};
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        transition: transform 0.2s ease;
+    }}
+    
+    .metric-container:hover {{
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }}
+    
+    .metric-value {{
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: {BRAND_COLORS["text_dark"]};
+        margin: 0;
+    }}
+    
+    .metric-label {{
+        font-size: 1rem;
+        color: {BRAND_COLORS["text_light"]};
+        margin: 0.5rem 0 0 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }}
+    
+    .alert-container {{
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        border-left: 4px solid;
+    }}
+    
+    .alert-warning {{
+        background-color: #FFF3CD;
+        border-left-color: {BRAND_COLORS["medium_yellow"]};
+        color: #856404;
+    }}
+    
+    .alert-danger {{
+        background-color: #F8D7DA;
+        border-left-color: {BRAND_COLORS["critical_red"]};
+        color: #721C24;
+    }}
+    
+    .alert-success {{
+        background-color: #D4EDDA;
+        border-left-color: {BRAND_COLORS["low_green"]};
+        color: #155724;
+    }}
+    
+    .lav-intelligence-card {{
+        background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1rem 0;
+        box-shadow: 0 8px 25px rgba(142, 68, 173, 0.3);
+    }}
+    
+    .precedent-card {{
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1rem 0;
+        box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+    }}
+    
+    .travel-brief-header {{
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        text-align: center;
+    }}
+    
+    .intelligence-summary {{
+        background: #2c3e50;
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 0.5rem 0;
+    }}
+    
+    .real-time-indicator {{
+        background: {BRAND_COLORS["low_green"]};
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+        animation: pulse 1s infinite;
+    }}
+    
+    @keyframes pulse {{
+        0% {{ opacity: 1; }}
+        50% {{ opacity: 0.5; }}
+        100% {{ opacity: 1; }}
+    }}
+    </style>
+    """, unsafe_allow_html=True)
 
-# --- CORE UTILITY FUNCTIONS ---
+# --- CORE FUNCTIONS ---
 def calculate_enhanced_risk_score(event: dict, threat_type: str) -> dict:
     """Calculate sophisticated risk scores with location-based adjustments."""
     baseline = ENHANCED_RISK_MATRIX.get(threat_type, ENHANCED_RISK_MATRIX["General Intelligence"])
@@ -273,7 +264,7 @@ def calculate_enhanced_risk_score(event: dict, threat_type: str) -> dict:
     }
 
 def classify_threat_type(event_title, event_details):
-    """Classify threats using NLP-like pattern matching."""
+    """Classify threats using pattern matching."""
     title_lower = event_title.lower()
     details_lower = event_details.lower()
     
@@ -290,7 +281,7 @@ def classify_threat_type(event_title, event_details):
     return "General Intelligence"
 
 def analyze_events_from_file(filepath):
-    """Load and analyze events with enhanced risk scoring."""
+    """Load and analyze events with risk scoring."""
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             events = json.load(f)
@@ -306,9 +297,9 @@ def analyze_events_from_file(filepath):
         analyzed_events.append(event)
     return analyzed_events
 
-# --- RELIABLE UI COMPONENTS ---
+# --- UI COMPONENTS ---
 def display_metric(label: str, value: str, color: str = "#2C3E50") -> None:
-    """Reliable metric card component."""
+    """Professional metric card component."""
     st.markdown(f"""
     <div class="metric-container">
         <div class="metric-value" style="color: {color}">{value}</div>
@@ -317,7 +308,7 @@ def display_metric(label: str, value: str, color: str = "#2C3E50") -> None:
     """, unsafe_allow_html=True)
 
 def display_intelligence_card(event: dict) -> None:
-    """Reliable intelligence feed card component."""
+    """Professional intelligence card component."""
     level = event['analysis']['risk_assessment']['risk_level']
     score = event['analysis']['risk_assessment']['risk_score']
     risk_class = f"risk-{level.lower()}"
@@ -341,138 +332,17 @@ def display_intelligence_card(event: dict) -> None:
     """, unsafe_allow_html=True)
 
 def display_alert(message: str, alert_type: str = "warning") -> None:
-    """Reliable alert component."""
+    """Professional alert component."""
     st.markdown(f"""
     <div class="alert-container alert-{alert_type}">
         {message}
     </div>
     """, unsafe_allow_html=True)
 
-# --- ENHANCED VISUALIZATIONS ---
-def create_professional_map():
-    """Create enhanced map visualization with Canada Goose locations."""
-    # Professional map data
-    map_locations = pd.DataFrame([
-        {"lat": 43.6532, "lon": -79.3832, "name": "Toronto HQ", "risk": "MEDIUM", "size": 25},
-        {"lat": 40.7128, "lon": -74.0060, "name": "New York Flagship", "risk": "HIGH", "size": 20},
-        {"lat": 51.5074, "lon": -0.1278, "name": "London Flagship", "risk": "HIGH", "size": 20},
-        {"lat": 48.8566, "lon": 2.3522, "name": "Paris Flagship", "risk": "HIGH", "size": 20},
-        {"lat": 39.9042, "lon": 116.4074, "name": "Beijing Flagship", "risk": "HIGH", "size": 20},
-        {"lat": 45.4642, "lon": 9.1900, "name": "Milan (LAV HQ)", "risk": "CRITICAL", "size": 30},
-        {"lat": 44.8833, "lon": 25.8000, "name": "Romania Facility", "risk": "HIGH", "size": 18}
-    ])
-    
-    # Color mapping
-    color_map = {
-        "CRITICAL": BRAND_COLORS["critical_red"],
-        "HIGH": BRAND_COLORS["high_orange"],
-        "MEDIUM": BRAND_COLORS["medium_yellow"],
-        "LOW": BRAND_COLORS["low_green"]
-    }
-    
-    fig = px.scatter_mapbox(
-        map_locations,
-        lat="lat",
-        lon="lon",
-        color="risk",
-        size="size",
-        hover_name="name",
-        hover_data={"risk": True, "size": False, "lat": False, "lon": False},
-        color_discrete_map=color_map,
-        zoom=1.5,
-        height=500
-    )
-    
-    fig.update_layout(
-        mapbox_style="carto-positron",
-        title="Canada Goose Global Security Asset Map",
-        title_font_size=18,
-        title_font_color=BRAND_COLORS["text_dark"]
-    )
-    
-    return fig
-
-def create_risk_distribution_chart(events_data):
-    """Enhanced risk distribution visualization."""
-    risk_counts = {}
-    for event in events_data:
-        level = event['analysis']['risk_assessment']['risk_level']
-        risk_counts[level] = risk_counts.get(level, 0) + 1
-    
-    colors = []
-    for level in risk_counts.keys():
-        if level == 'CRITICAL':
-            colors.append(BRAND_COLORS["critical_red"])
-        elif level == 'HIGH':
-            colors.append(BRAND_COLORS["high_orange"])
-        elif level == 'MEDIUM':
-            colors.append(BRAND_COLORS["medium_yellow"])
-        else:
-            colors.append(BRAND_COLORS["low_green"])
-    
-    fig = go.Figure(data=[
-        go.Bar(
-            x=list(risk_counts.keys()),
-            y=list(risk_counts.values()),
-            marker_color=colors,
-            text=list(risk_counts.values()),
-            textposition='auto',
-            hovertemplate="<b>%{x}</b><br>Events: %{y}<extra></extra>"
-        )
-    ])
-    
-    fig.update_layout(
-        title="Risk Level Distribution",
-        title_font_size=18,
-        title_font_color=BRAND_COLORS["text_dark"],
-        xaxis_title="Risk Level",
-        yaxis_title="Number of Events",
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(family="Arial", size=12, color=BRAND_COLORS["text_dark"]),
-        height=400
-    )
-    
-    return fig
-
-def create_threat_timeline(events_data):
-    """Interactive threat timeline."""
-    df = pd.DataFrame([{
-        'date': datetime.strptime(event['date'], '%Y-%m-%d'),
-        'title': event['title'],
-        'risk_level': event['analysis']['risk_assessment']['risk_level'],
-        'risk_score': event['analysis']['risk_assessment']['risk_score'],
-        'location': event['location'],
-        'threat_type': event['analysis']['threat_type']
-    } for event in events_data])
-    
-    color_map = {
-        'CRITICAL': BRAND_COLORS["critical_red"],
-        'HIGH': BRAND_COLORS["high_orange"], 
-        'MEDIUM': BRAND_COLORS["medium_yellow"],
-        'LOW': BRAND_COLORS["low_green"]
-    }
-    
-    fig = px.scatter(df, x='date', y='risk_score', 
-                     color='risk_level',
-                     size='risk_score',
-                     hover_data={'title': True, 'location': True, 'threat_type': True},
-                     color_discrete_map=color_map,
-                     title="Threat Evolution Timeline")
-    
-    fig.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(family="Arial", size=12, color=BRAND_COLORS["text_dark"]),
-        height=500
-    )
-    
-    return fig
-
 # --- DATA LOADING ---
 @st.cache_data
 def load_application_data():
-    """Centralized data loading with error handling."""
+    """Load all application data with error handling."""
     try:
         with open('corporate_data.json', 'r', encoding='utf-8') as f:
             corporate = json.load(f)
@@ -484,9 +354,22 @@ def load_application_data():
         st.error(f"Critical data loading error: {e}")
         st.stop()
 
-# --- MAIN APPLICATION SECTIONS ---
-def render_travel_brief():
-    """Render travel brief section if active."""
+# --- MAIN APPLICATION ---
+def main():
+    """Main application function."""
+    # Page Configuration
+    st.set_page_config(
+        page_title="CG - Global Security Intelligence", 
+        page_icon="🛡️", 
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+    
+    # Load styling and data
+    load_custom_css()
+    corporate_data, events_data, indicators_data = load_application_data()
+    
+    # Travel Brief (if active)
     if hasattr(st.session_state, 'show_travel_brief') and st.session_state.show_travel_brief:
         st.markdown(f"""
         <div class="travel-brief-header">
@@ -559,26 +442,24 @@ def render_travel_brief():
                 st.rerun()
         
         st.markdown("---")
-
-def render_header():
-    """Render enhanced application header."""
-    # Real-time indicator
+    
+    # Real-time header
     st.markdown(f"""
-    <div style="text-align: center; padding: 0.5rem; background: #32CD32; color: white; border-radius: 5px; margin-bottom: 1rem;">
+    <div style="text-align: center; padding: 0.5rem; background: {BRAND_COLORS['low_green']}; color: white; border-radius: 5px; margin-bottom: 1rem;">
         <span class="real-time-indicator"></span>
         <strong>Live Intelligence Feed Active</strong> | Last update: {datetime.now().strftime('%H:%M:%S')}
     </div>
     """, unsafe_allow_html=True)
     
+    # Main Header
     st.markdown("""
     <div class="main-header">
         <h1>🛡️ Canada Goose Global Security Intelligence Platform</h1>
         <p>LAV Counter-Intelligence • RDS Supply Chain Monitoring • Executive Protection</p>
     </div>
     """, unsafe_allow_html=True)
-
-def render_key_metrics(events_data, corporate_data):
-    """Render key performance metrics."""
+    
+    # Key Metrics
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
@@ -595,9 +476,10 @@ def render_key_metrics(events_data, corporate_data):
     with col4:
         lav_events = sum(1 for e in events_data if "peta" in e['details'].lower() or "activist" in e['title'].lower())
         display_metric("LAV Incidents", str(lav_events), BRAND_COLORS['accent_red'])
-
-def render_lav_analysis(indicators_data):
-    """Render LAV counter-intelligence analysis."""
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # LAV Intelligence Analysis
     st.markdown("### 🕵️ LAV Counter-Intelligence: Post-Fur Strategy Threat Assessment")
     
     display_alert("""
@@ -634,87 +516,8 @@ def render_lav_analysis(indicators_data):
             </ul>
         </div>
         """, unsafe_allow_html=True)
-
-def render_analytics_dashboard(events_data):
-    """Render analytics dashboard with stable components."""
-    st.markdown("### 📊 Intelligence Analytics Dashboard")
     
-    # Simple but effective navigation
-    tab1, tab2, tab3 = st.tabs(["🌍 Geographic Analysis", "📈 Risk Trends", "📡 Live Intelligence Feed"])
-    
-    with tab1:
-        col_chart1, col_chart2 = st.columns(2)
-        
-        with col_chart1:
-            st.plotly_chart(create_risk_distribution_chart(events_data), use_container_width=True)
-        
-        with col_chart2:
-            st.plotly_chart(create_professional_map(), use_container_width=True)
-    
-    with tab2:
-        st.plotly_chart(create_threat_timeline(events_data), use_container_width=True)
-        
-        # Risk trend analysis
-        trend_data = []
-        for event in sorted(events_data, key=lambda x: x['date']):
-            trend_data.append({
-                'Date': event['date'],
-                'Cumulative Risk': sum(e['analysis']['risk_assessment']['risk_score'] 
-                                     for e in events_data 
-                                     if e['date'] <= event['date'])
-            })
-        
-        df_trend = pd.DataFrame(trend_data)
-        fig_trend = px.line(df_trend, x='Date', y='Cumulative Risk', 
-                           title="Cumulative Risk Score Over Time",
-                           line_shape='spline')
-        fig_trend.update_traces(line_color=BRAND_COLORS["accent_red"], line_width=3)
-        fig_trend.update_layout(
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(family="Arial", size=12, color=BRAND_COLORS["text_dark"])
-        )
-        st.plotly_chart(fig_trend, use_container_width=True)
-    
-    with tab3:
-        render_intelligence_feed_with_filters(events_data)
-
-def render_intelligence_feed_with_filters(events_data):
-    """Render intelligence feed with basic filtering."""
-    st.markdown("#### Live Intelligence Feed")
-    
-    # Simple filter controls
-    col_filter1, col_filter2 = st.columns(2)
-    
-    with col_filter1:
-        risk_filter = st.multiselect(
-            "Filter by Risk Level",
-            options=["CRITICAL", "HIGH", "MEDIUM", "LOW"],
-            default=["CRITICAL", "HIGH", "MEDIUM", "LOW"]
-        )
-    
-    with col_filter2:
-        search_term = st.text_input("Search in title/details", placeholder="Enter search term...")
-    
-    # Apply filters
-    filtered_events = events_data
-    
-    if risk_filter:
-        filtered_events = [e for e in filtered_events if e['analysis']['risk_assessment']['risk_level'] in risk_filter]
-    
-    if search_term:
-        filtered_events = [e for e in filtered_events if 
-                          search_term.lower() in e['title'].lower() or 
-                          search_term.lower() in e['details'].lower()]
-    
-    # Display results
-    st.write(f"**Showing {len(filtered_events)} of {len(events_data)} events**")
-    
-    for event in sorted(filtered_events, key=lambda x: x['date'], reverse=True):
-        display_intelligence_card(event)
-
-def render_predictive_analysis(indicators_data):
-    """Render predictive threat analysis section."""
+    # Predictive Analysis
     st.markdown("### 📊 Predictive Threat Analysis: Indicators & Warnings")
     
     for threat in indicators_data['threats']:
@@ -754,9 +557,88 @@ def render_predictive_analysis(indicators_data):
                     display_alert("<strong>⚠️ WARNING THRESHOLD EXCEEDED</strong><br>Proactive mitigation protocols should be initiated.", "danger")
                 else:
                     display_alert("<strong>✅ Threat Level Normal</strong><br>Standard monitoring in effect.", "success")
-
-def render_travel_controls():
-    """Render travel risk assessment controls in sidebar."""
+    
+    # Analytics Dashboard
+    st.markdown("### 📊 Intelligence Analytics Dashboard")
+    
+    tab1, tab2, tab3 = st.tabs(["🌍 Geographic Analysis", "📈 Risk Trends", "📡 Live Intelligence Feed"])
+    
+    with tab1:
+        # Basic charts using built-in Streamlit
+        st.subheader("Risk Level Distribution")
+        
+        risk_counts = {}
+        for event in events_data:
+            level = event['analysis']['risk_assessment']['risk_level']
+            risk_counts[level] = risk_counts.get(level, 0) + 1
+        
+        # Use built-in bar chart
+        chart_data = pd.DataFrame({
+            'Risk Level': list(risk_counts.keys()),
+            'Count': list(risk_counts.values())
+        })
+        st.bar_chart(chart_data.set_index('Risk Level'))
+        
+        # Simple map using built-in map
+        st.subheader("Global Asset Map")
+        map_data = pd.DataFrame([
+            {"lat": 43.6532, "lon": -79.3832},
+            {"lat": 40.7128, "lon": -74.0060},
+            {"lat": 51.5074, "lon": -0.1278},
+            {"lat": 48.8566, "lon": 2.3522},
+            {"lat": 39.9042, "lon": 116.4074},
+            {"lat": 45.4642, "lon": 9.1900},
+        ])
+        st.map(map_data)
+    
+    with tab2:
+        st.subheader("Risk Score Timeline")
+        
+        # Create timeline chart
+        timeline_data = []
+        for event in sorted(events_data, key=lambda x: x['date']):
+            timeline_data.append({
+                'Date': event['date'],
+                'Risk Score': event['analysis']['risk_assessment']['risk_score']
+            })
+        
+        df_timeline = pd.DataFrame(timeline_data)
+        st.line_chart(df_timeline.set_index('Date'))
+    
+    with tab3:
+        st.subheader("Live Intelligence Feed")
+        
+        # Filter controls
+        col_filter1, col_filter2 = st.columns(2)
+        
+        with col_filter1:
+            risk_filter = st.multiselect(
+                "Filter by Risk Level",
+                options=["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+                default=["CRITICAL", "HIGH", "MEDIUM", "LOW"]
+            )
+        
+        with col_filter2:
+            search_term = st.text_input("Search in title/details", placeholder="Enter search term...")
+        
+        # Apply filters
+        filtered_events = events_data
+        
+        if risk_filter:
+            filtered_events = [e for e in filtered_events if e['analysis']['risk_assessment']['risk_level'] in risk_filter]
+        
+        if search_term:
+            filtered_events = [e for e in filtered_events if 
+                              search_term.lower() in e['title'].lower() or 
+                              search_term.lower() in e['details'].lower()]
+        
+        # Display results
+        st.write(f"**Showing {len(filtered_events)} of {len(events_data)} events**")
+        
+        for event in sorted(filtered_events, key=lambda x: x['date'], reverse=True):
+            display_intelligence_card(event)
+    
+    # Travel Controls Sidebar
     with st.sidebar:
         st.markdown("### ✈️ Travel Risk Generator")
         st.markdown("---")
@@ -771,33 +653,6 @@ def render_travel_controls():
             st.session_state.travel_destination = destination
             st.session_state.travel_role = traveler_role
             st.rerun()
-
-# --- MAIN APPLICATION ---
-def main():
-    """Stable main application orchestrator."""
-    # Page Configuration
-    st.set_page_config(
-        page_title="CG - Global Security Intelligence", 
-        page_icon="🛡️", 
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
-    
-    # Load styling and data
-    load_custom_css()
-    corporate_data, events_data, indicators_data = load_application_data()
-    
-    # Render application sections
-    render_travel_brief()  # Top priority when active
-    render_header()
-    render_key_metrics(events_data, corporate_data)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    render_lav_analysis(indicators_data)
-    render_predictive_analysis(indicators_data)
-    render_analytics_dashboard(events_data)
-    render_travel_controls()
 
 if __name__ == "__main__":
     main()
