@@ -446,11 +446,105 @@ def main():
     # Load data
     corporate_data, events_data, indicators_data = load_data()
     
+    # Travel Brief Display (Top Priority when Active)
+    if hasattr(st.session_state, 'show_travel_brief') and st.session_state.show_travel_brief:
+        st.markdown(f"""
+        <div class="alert-container alert-danger">
+            <h2>🚨 EXECUTIVE TRAVEL INTELLIGENCE BRIEF</h2>
+            <h3>Destination: {st.session_state.travel_destination} | Role: {st.session_state.travel_role}</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        col_brief1, col_brief2 = st.columns([2, 1])
+        
+        with col_brief1:
+            st.markdown("#### 🔍 LAV-Specific Threat Assessment")
+            
+            # Location-specific LAV intelligence
+            if "milan" in st.session_state.travel_destination.lower():
+                st.markdown("""
+                <div class="alert-container alert-danger">
+                    <strong>🚨 HIGH THREAT: LAV HEADQUARTERS PROXIMITY</strong><br>
+                    • Milan = LAV operational headquarters<br>
+                    • Executive surveillance risk: CRITICAL<br>
+                    • Supplier meeting security: Enhanced protocols required<br>
+                    • Recommendation: Alternative meeting locations outside Milan center
+                </div>
+                """, unsafe_allow_html=True)
+            elif "romania" in st.session_state.travel_destination.lower():
+                st.markdown("""
+                <div class="alert-container alert-danger">
+                    <strong>🏭 FACILITY INFILTRATION ALERT</strong><br>
+                    • Paola Confectii = Critical European manufacturing asset<br>
+                    • Infiltration attempts: HIGH PROBABILITY<br>
+                    • Supply chain intelligence gathering: Expected<br>
+                    • Coordinate all visits with facility security
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                # Check for location-specific threats in events
+                found_relevant_event = False
+                for event in events_data:
+                    if st.session_state.travel_destination.split(',')[0] in event['location']:
+                        st.markdown(f"""
+                        <div class="alert-container alert-danger">
+                            <strong>🚨 CURRENT THREAT ALERT:</strong><br>
+                            <strong>{event['title']}</strong><br>
+                            {event['details']}
+                        </div>
+                        """, unsafe_allow_html=True)
+                        found_relevant_event = True
+                
+                if not found_relevant_event:
+                    st.markdown("""
+                    <div class="alert-container alert-success">
+                        <strong>✅ No Direct LAV Threats Identified</strong><br>
+                        No specific LAV operations detected for this location.
+                    </div>
+                    """, unsafe_allow_html=True)
+            
+            # Enhanced security protocols
+            st.markdown("#### 🛡️ Enhanced Security Protocols")
+            st.markdown("""
+            **Counter-Surveillance Measures:**
+            - Maintain operational security regarding RDS supplier meetings
+            - Use non-company transportation for sensitive locations
+            - Avoid discussion of supply chain details in public areas
+            - Report any surveillance attempts immediately
+            
+            **Communication Security:**
+            - Use encrypted channels for supplier coordination
+            - Avoid predictable travel patterns
+            - Brief security team on all facility visits
+            """)
+        
+        with col_brief2:
+            st.markdown("#### 📞 Emergency Contacts")
+            st.json({
+                "Global Security 24/7": "+1-416-555-0100",
+                "Local Security Coordinator": "See pre-travel package",
+                "LAV Threat Hotline": "+1-416-555-0199"
+            })
+            
+            st.markdown("#### 🎯 LAV Intelligence Summary")
+            st.markdown("""
+            **Threat Level:** HIGH  
+            **Primary Concern:** RDS compliance monitoring  
+            **Moncler Precedent:** 70% success rate  
+            **Timeline Risk:** Next 6 months critical
+            """)
+            
+            if st.button("🔄 Generate New Brief", use_container_width=True):
+                st.session_state.show_travel_brief = False
+                st.rerun()
+        
+        st.markdown("---")
+    
     # Main Header
     st.markdown("""
     <div class="main-header">
         <h1>🛡️ Canada Goose Global Security Intelligence Platform</h1>
-        <p>Strategic Threat Analysis & Risk Mitigation Dashboard</p>
+        <p>LAV Counter-Intelligence • RDS Supply Chain Monitoring • Executive Protection</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -493,8 +587,41 @@ def main():
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Predictive Threat Analysis
-    st.markdown("### 🔮 Predictive Threat Analysis: Indicators & Warnings")
+    # LAV Counter-Intelligence Analysis (Core Focus)
+    st.markdown("### 🕵️ LAV Counter-Intelligence: Post-Fur Strategy Threat Assessment")
+    
+    # Highlight the core LAV intelligence
+    st.markdown("""
+    <div class="alert-container alert-danger">
+        <strong>🎯 INTELLIGENCE FOCUS: LAV Activist Group Analysis</strong><br>
+        Following Canada Goose's 2022 fur-free commitment, LAV (Italy) has shifted tactics from fur protests to 
+        <strong>RDS down supply chain compliance monitoring</strong>. Intelligence indicates high probability of 
+        coordinated investigation operations targeting manufacturing facilities and supplier relationships.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Add Moncler precedent context
+    col_precedent1, col_precedent2 = st.columns(2)
+    
+    with col_precedent1:
+        st.markdown("""
+        **🔍 MONCLER PRECEDENT (2022):**
+        - LAV successfully pressured Moncler to commit to RDS certification
+        - Tactics: Facility surveillance, supplier infiltration, executive tracking
+        - Timeline: 8-month coordinated campaign
+        - Success Rate: 70% compliance achievement
+        """)
+    
+    with col_precedent2:
+        st.markdown("""
+        **⚡ CURRENT THREAT INDICATORS:**
+        - Milan expansion plans = LAV headquarters proximity
+        - Romania facility = High infiltration risk
+        - Executive travel patterns = Surveillance opportunities
+        - RDS certification gaps = Campaign vulnerability
+        """)
+    
+    st.markdown("### 📊 Predictive Threat Analysis: Indicators & Warnings")
     
     for threat in indicators_data['threats']:
         triggered_count = 0
@@ -652,57 +779,6 @@ def main():
             st.session_state.travel_destination = destination
             st.session_state.travel_role = traveler_role
     
-    # Travel Brief Display
-    if hasattr(st.session_state, 'show_travel_brief') and st.session_state.show_travel_brief:
-        st.markdown("---")
-        st.markdown(f"### 🚨 Intelligence Brief: Travel to {st.session_state.travel_destination}")
-        st.markdown(f"**Role:** {st.session_state.travel_role}")
-        
-        col_brief1, col_brief2 = st.columns([2, 1])
-        
-        with col_brief1:
-            st.markdown("#### General Threat Assessment")
-            st.markdown("""
-            <div class="alert-container alert-warning">
-                <strong>Standard Precautions Advised:</strong><br>
-                • Be aware of surroundings at all times<br>
-                • Secure personal belongings and avoid displaying high-value items<br>
-                • Maintain operational security regarding travel purpose
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Check for location-specific threats
-            found_relevant_event = False
-            for event in events_data:
-                if st.session_state.travel_destination.split(',')[0] in event['location']:
-                    st.markdown(f"""
-                    <div class="alert-container alert-danger">
-                        <strong>🚨 CURRENT THREAT ALERT:</strong><br>
-                        <strong>{event['title']}</strong><br>
-                        {event['details']}
-                    </div>
-                    """, unsafe_allow_html=True)
-                    found_relevant_event = True
-            
-            if not found_relevant_event:
-                st.markdown("""
-                <div class="alert-container alert-success">
-                    <strong>✅ No Direct Threats Identified</strong><br>
-                    No specific threats to this location in current intelligence feed.
-                </div>
-                """, unsafe_allow_html=True)
-        
-        with col_brief2:
-            st.markdown("#### Emergency Contacts")
-            st.json({
-                "Global Security 24/7": "+1-416-555-0100",
-                "Local Embassy": "See pre-travel package",
-                "Medical/Security (ISOS)": "Mobile app available"
-            })
-            
-            if st.button("Clear Brief"):
-                st.session_state.show_travel_brief = False
-                st.rerun()
 
 if __name__ == "__main__":
     main()
