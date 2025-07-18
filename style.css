@@ -1,0 +1,241 @@
+/* Canada Goose Global Security Intelligence Platform - Professional Styling */
+
+/* Global Styling */
+.main {
+    background-color: #F8F9FA;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Header Styling */
+.main-header {
+    background: linear-gradient(135deg, #000000 0%, #333333 100%);
+    color: #FFFFFF;
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.main-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.main-header p {
+    font-size: 1.2rem;
+    margin: 0.5rem 0 0 0;
+    opacity: 0.9;
+}
+
+/* Risk Level Cards */
+.risk-card {
+    background: #FFFFFF;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom: 1rem;
+    border-left: 5px solid;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.risk-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+.risk-critical {
+    border-left-color: #FF4444;
+}
+
+.risk-high {
+    border-left-color: #FF8C00;
+}
+
+.risk-medium {
+    border-left-color: #FFD700;
+}
+
+.risk-low {
+    border-left-color: #32CD32;
+}
+
+/* Status Indicators */
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.status-critical { background-color: #FF4444; }
+.status-high { background-color: #FF8C00; }
+.status-medium { background-color: #FFD700; }
+.status-low { background-color: #32CD32; }
+.status-red { background-color: #FF4444; }
+.status-yellow { background-color: #FFD700; }
+.status-green { background-color: #32CD32; }
+
+/* Metrics Styling */
+.metric-container {
+    background: #FFFFFF;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+}
+
+.metric-container:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2C3E50;
+    margin: 0;
+}
+
+.metric-label {
+    font-size: 1rem;
+    color: #6C757D;
+    margin: 0.5rem 0 0 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* LAV Intelligence Cards */
+.lav-intelligence-card {
+    background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 1rem 0;
+    box-shadow: 0 8px 25px rgba(142, 68, 173, 0.3);
+}
+
+.precedent-card {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 1rem 0;
+    box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+}
+
+/* Button Styling */
+.stButton > button {
+    background: linear-gradient(135deg, #DC143C 0%, #B71C1C 100%);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(220,20,60,0.3);
+}
+
+/* Tab Styling */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background-color: #FFFFFF;
+    border-radius: 8px 8px 0 0;
+    border: 1px solid #E9ECEF;
+    color: #2C3E50;
+    font-weight: 600;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: #DC143C;
+    color: #FFFFFF;
+}
+
+/* Alert Styling */
+.alert-container {
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    border-left: 4px solid;
+}
+
+.alert-warning {
+    background-color: #FFF3CD;
+    border-left-color: #FFD700;
+    color: #856404;
+}
+
+.alert-danger {
+    background-color: #F8D7DA;
+    border-left-color: #FF4444;
+    color: #721C24;
+}
+
+.alert-success {
+    background-color: #D4EDDA;
+    border-left-color: #32CD32;
+    color: #155724;
+}
+
+/* Filter Controls */
+.filter-container {
+    background: #FFFFFF;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+/* Travel Brief Styling */
+.travel-brief-header {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.intelligence-summary {
+    background: #2c3e50;
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+}
+
+/* Professional Map Container */
+.map-container {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    margin: 1rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-header h1 {
+        font-size: 2rem;
+    }
+    
+    .metric-value {
+        font-size: 2rem;
+    }
+    
+    .metric-container {
+        padding: 1rem;
+    }
+}
