@@ -1,1066 +1,704 @@
-# app_enhanced.py - Complete Enhanced Canada Goose Global Security Intelligence Platform
-# Now with Activist Counter-Intelligence Prediction
+# app_enhanced.py - Canada Goose Global Security Intelligence Platform
+# Enhanced with professional styling, interactive visualizations, and improved UX
 
 import streamlit as st
 import pandas as pd
 import json
-import folium
-from streamlit_folium import st_folium
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
+import re
+from typing import Dict, List, Optional
 
-# Import our enhanced backend modules
-from nlp_engine import analyze_events_from_file
-from travel_risk_analyzer import TravelRiskAnalyzer, predict_travel_impacts
-from geopolitical_intelligence import GeopoliticalIntelligenceMonitor, get_geopolitical_context
+# --- CANADA GOOSE BRAND COLORS & STYLING ---
+BRAND_COLORS = {
+    "primary_black": "#000000",
+    "primary_white": "#FFFFFF", 
+    "accent_red": "#DC143C",
+    "critical_red": "#FF4444",
+    "high_orange": "#FF8C00",
+    "medium_yellow": "#FFD700",
+    "low_green": "#32CD32",
+    "background_gray": "#F8F9FA",
+    "card_gray": "#FFFFFF",
+    "text_dark": "#2C3E50",
+    "text_light": "#6C757D"
+}
 
-# Import the new counter-intelligence predictor
-try:
-    from activist_counter_intelligence_predictor import (
-        ActivistCounterIntelligencePredictor,
-        get_activist_intelligence_summary,
-        get_travel_security_enhancements
-    )
-
-    COUNTER_INTEL_AVAILABLE = True
-except ImportError:
-    COUNTER_INTEL_AVAILABLE = False
-    st.error(
-        "⚠️ Counter-Intelligence module not found. Please ensure activist_counter_intelligence_predictor.py is in your project folder.")
-
-# --- Page Configuration ---
-st.set_page_config(
-    page_title="CG - Global Security Intelligence",
-    page_icon="🛡️",
-    layout="wide"
-)
-
-# --- Enhanced Custom Styling ---
-st.markdown("""
-<style>
-    .main-header {
-        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+# Custom CSS for Canada Goose branding
+def load_custom_css():
+    st.markdown(f"""
+    <style>
+    /* Global Styling */
+    .main {{
+        background-color: {BRAND_COLORS["background_gray"]};
+        font-family: 'Arial', sans-serif;
+    }}
+    
+    /* Header Styling */
+    .main-header {{
+        background: linear-gradient(135deg, {BRAND_COLORS["primary_black"]} 0%, #333333 100%);
+        color: {BRAND_COLORS["primary_white"]};
         padding: 2rem;
         border-radius: 15px;
-        border-left: 8px solid #E6332A;
         margin-bottom: 2rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
-    .main-header h1, .main-header p { color: white; }
-
-    .metric-card {
-        background: #2c3e50;
-        padding: 1.5rem;
-        border-radius: 10px;
-        border-left: 4px solid #E6332A;
-        color: white;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         text-align: center;
-    }
-
-    .travel-risk-card {
-        background: linear-gradient(135deg, #2c3e50, #34495e);
+    }}
+    
+    .main-header h1 {{
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }}
+    
+    .main-header p {{
+        font-size: 1.2rem;
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+    }}
+    
+    /* Risk Level Cards */
+    .risk-card {{
+        background: {BRAND_COLORS["card_gray"]};
         padding: 1.5rem;
-        border-radius: 10px;
-        border-left: 4px solid #3498db;
-        color: white;
-        margin: 1rem 0;
-    }
-
-    .counter-intel-card {
-        background: linear-gradient(135deg, #8e44ad, #9b59b6);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        margin-bottom: 1rem;
+        border-left: 5px solid;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }}
+    
+    .risk-card:hover {{
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }}
+    
+    .risk-critical {{
+        border-left-color: {BRAND_COLORS["critical_red"]};
+    }}
+    
+    .risk-high {{
+        border-left-color: {BRAND_COLORS["high_orange"]};
+    }}
+    
+    .risk-medium {{
+        border-left-color: {BRAND_COLORS["medium_yellow"]};
+    }}
+    
+    .risk-low {{
+        border-left-color: {BRAND_COLORS["low_green"]};
+    }}
+    
+    /* Status Indicators */
+    .status-indicator {{
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }}
+    
+    .status-critical {{ background-color: {BRAND_COLORS["critical_red"]}; }}
+    .status-high {{ background-color: {BRAND_COLORS["high_orange"]}; }}
+    .status-medium {{ background-color: {BRAND_COLORS["medium_yellow"]}; }}
+    .status-low {{ background-color: {BRAND_COLORS["low_green"]}; }}
+    .status-red {{ background-color: {BRAND_COLORS["critical_red"]}; }}
+    .status-yellow {{ background-color: {BRAND_COLORS["medium_yellow"]}; }}
+    .status-green {{ background-color: {BRAND_COLORS["low_green"]}; }}
+    
+    /* Metrics Styling */
+    .metric-container {{
+        background: {BRAND_COLORS["card_gray"]};
         padding: 1.5rem;
-        border-radius: 10px;
-        border-left: 4px solid #e74c3c;
-        color: white;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }}
+    
+    .metric-value {{
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: {BRAND_COLORS["text_dark"]};
+        margin: 0;
+    }}
+    
+    .metric-label {{
+        font-size: 1rem;
+        color: {BRAND_COLORS["text_light"]};
+        margin: 0.5rem 0 0 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }}
+    
+    /* Sidebar Styling */
+    .css-1d391kg {{
+        background-color: {BRAND_COLORS["primary_black"]};
+    }}
+    
+    .css-1d391kg .css-1v3fvcr {{
+        color: {BRAND_COLORS["primary_white"]};
+    }}
+    
+    /* Button Styling */
+    .stButton > button {{
+        background: linear-gradient(135deg, {BRAND_COLORS["accent_red"]} 0%, #B71C1C 100%);
+        color: {BRAND_COLORS["primary_white"]};
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }}
+    
+    .stButton > button:hover {{
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(220,20,60,0.3);
+    }}
+    
+    /* Expander Styling */
+    .streamlit-expanderHeader {{
+        background-color: {BRAND_COLORS["card_gray"]};
+        border-radius: 8px;
+        border: 1px solid #E9ECEF;
+    }}
+    
+    /* Tab Styling */
+    .stTabs [data-baseweb="tab-list"] {{
+        gap: 8px;
+    }}
+    
+    .stTabs [data-baseweb="tab"] {{
+        background-color: {BRAND_COLORS["card_gray"]};
+        border-radius: 8px 8px 0 0;
+        border: 1px solid #E9ECEF;
+        color: {BRAND_COLORS["text_dark"]};
+        font-weight: 600;
+    }}
+    
+    .stTabs [aria-selected="true"] {{
+        background-color: {BRAND_COLORS["accent_red"]};
+        color: {BRAND_COLORS["primary_white"]};
+    }}
+    
+    /* Alert Styling */
+    .alert-container {{
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
         margin: 1rem 0;
+        border-left: 4px solid;
+    }}
+    
+    .alert-warning {{
+        background-color: #FFF3CD;
+        border-left-color: {BRAND_COLORS["medium_yellow"]};
+        color: #856404;
+    }}
+    
+    .alert-danger {{
+        background-color: #F8D7DA;
+        border-left-color: {BRAND_COLORS["critical_red"]};
+        color: #721C24;
+    }}
+    
+    .alert-success {{
+        background-color: #D4EDDA;
+        border-left-color: {BRAND_COLORS["low_green"]};
+        color: #155724;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- ENHANCED RISK SCORING ---
+ENHANCED_RISK_MATRIX = {
+    "Activism / Physical Security": {"likelihood": 4, "impact": 3, "primary_impact": "Store Operations & Reputation"},
+    "Geopolitical / Market Risk": {"likelihood": 3, "impact": 5, "primary_impact": "Revenue & Market Access"},
+    "Legal / Financial": {"likelihood": 2, "impact": 4, "primary_impact": "Financial Performance"},
+    "Organized Retail Crime": {"likelihood": 4, "impact": 3, "primary_impact": "Inventory Loss & Staff Safety"},
+    "Cyber / Dark Web": {"likelihood": 3, "impact": 4, "primary_impact": "Customer Data & Brand Trust"},
+    "General Intelligence": {"likelihood": 2, "impact": 2, "primary_impact": "General Awareness"}
+}
+
+BUSINESS_CRITICAL_LOCATIONS = {
+    "China": {"revenue_impact": 17.7, "criticality": "CRITICAL"},
+    "Shanghai": {"revenue_impact": 8.8, "criticality": "HIGH"},
+    "Beijing": {"revenue_impact": 5.0, "criticality": "HIGH"},
+    "London": {"revenue_impact": 12.0, "criticality": "HIGH"},
+    "Paris": {"revenue_impact": 8.0, "criticality": "HIGH"},
+    "New York": {"revenue_impact": 15.0, "criticality": "HIGH"},
+    "Toronto": {"revenue_impact": 25.0, "criticality": "CRITICAL"}
+}
+
+def calculate_enhanced_risk_score(event: dict, threat_type: str) -> dict:
+    baseline = ENHANCED_RISK_MATRIX.get(threat_type, ENHANCED_RISK_MATRIX["General Intelligence"])
+    likelihood = baseline["likelihood"]
+    impact = baseline["impact"]
+    adjustments = []
+    location_multiplier = 1.0
+
+    location = event.get('location', '')
+    for critical_loc, data in BUSINESS_CRITICAL_LOCATIONS.items():
+        if critical_loc.lower() in location.lower():
+            if data["criticality"] == "CRITICAL":
+                location_multiplier = 1.3
+                adjustments.append(f"Critical Business Location Multiplier: x{location_multiplier}")
+            elif data["criticality"] == "HIGH":
+                location_multiplier = 1.2
+                adjustments.append(f"High-Value Location Multiplier: x{location_multiplier}")
+            break
+
+    if "peta" in event.get('details', '').lower():
+        likelihood = min(5, likelihood + 1)
+        adjustments.append("Known Threat Actor (PETA) increases likelihood.")
+
+    final_impact = min(5, impact * location_multiplier)
+    risk_score = likelihood * final_impact
+
+    if risk_score >= 20:
+        risk_level = "CRITICAL"
+    elif risk_score >= 15:
+        risk_level = "HIGH"
+    elif risk_score >= 10:
+        risk_level = "MEDIUM"
+    else:
+        risk_level = "LOW"
+
+    return {
+        "risk_score": int(risk_score),
+        "risk_level": risk_level,
+        "likelihood": likelihood,
+        "impact": int(final_impact),
+        "primary_impact": baseline["primary_impact"],
+        "adjustments_made": adjustments
     }
 
-    .geopolitical-alert {
-        background: rgba(231, 76, 60, 0.1);
-        border-left: 4px solid #e74c3c;
-        padding: 1rem;
-        border-radius: 8px;
-        margin: 0.5rem 0;
-    }
+def classify_threat_type(event_title, event_details):
+    title_lower = event_title.lower()
+    details_lower = event_details.lower()
+    if "peta" in details_lower or "activist" in title_lower or "protest" in details_lower:
+        return "Activism / Physical Security"
+    if "trade" in title_lower or "geopolitical" in title_lower or "china" in title_lower or "diplomatic" in details_lower:
+        return "Geopolitical / Market Risk"
+    if "arbitration" in title_lower or "financial" in title_lower or "charge" in details_lower:
+        return "Legal / Financial"
+    if "orc" in title_lower or "organized retail crime" in title_lower or "thefts" in details_lower:
+        return "Organized Retail Crime"
+    if "dark web" in title_lower or "cyber" in title_lower or "data" in details_lower:
+        return "Cyber / Dark Web"
+    return "General Intelligence"
 
-    .business-critical {
-        background: rgba(52, 152, 219, 0.1);
-        border-left: 4px solid #3498db;
-        padding: 1rem;
-        border-radius: 8px;
-        margin: 0.5rem 0;
-    }
-
-    .executive-brief {
-        background: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 8px;
-        border-left: 4px solid #28a745;
-        margin: 1rem 0;
-    }
-
-    .prediction-alert {
-        background: rgba(142, 68, 173, 0.1);
-        border-left: 4px solid #8e44ad;
-        padding: 1rem;
-        border-radius: 8px;
-        margin: 0.5rem 0;
-    }
-
-    .risk-critical { background-color: rgba(220, 53, 69, 0.1); border-left-color: #dc3545; }
-    .risk-high { background-color: rgba(255, 193, 7, 0.1); border-left-color: #ffc107; }
-    .risk-medium { background-color: rgba(255, 193, 7, 0.1); border-left-color: #fd7e14; }
-    .risk-low { background-color: rgba(40, 167, 69, 0.1); border-left-color: #28a745; }
-</style>
-""", unsafe_allow_html=True)
-
-
-# --- Data Loading (Enhanced) ---
-@st.cache_data
-def load_all_data():
-    """Load all necessary data and initialize intelligence systems"""
+def analyze_events_from_file(filepath):
     try:
-        # Load existing data files
-        with open('corporate_data.json', 'r') as f:
-            corporate_data = json.load(f)
-        with open('emergency_action_plans.json', 'r') as f:
-            eaps = json.load(f)
+        with open(filepath, 'r', encoding='utf-8') as f:
+            events = json.load(f)
+    except Exception as e:
+        st.error(f"Error loading {filepath}: {e}")
+        return []
 
-        # Analyze events with enhanced NLP
-        analyzed_events = analyze_events_from_file('events.json')
+    analyzed_events = []
+    for event in events:
+        threat_type = classify_threat_type(event['title'], event['details'])
+        risk_assessment = calculate_enhanced_risk_score(event, threat_type)
+        event['analysis'] = {'threat_type': threat_type, 'risk_assessment': risk_assessment}
+        analyzed_events.append(event)
+    return analyzed_events
 
-        # Initialize travel risk analyzer
-        travel_analyzer = TravelRiskAnalyzer()
+# --- ENHANCED VISUALIZATIONS ---
+def create_risk_distribution_chart(events_data):
+    risk_counts = {}
+    for event in events_data:
+        level = event['analysis']['risk_assessment']['risk_level']
+        risk_counts[level] = risk_counts.get(level, 0) + 1
+    
+    fig = go.Figure(data=[
+        go.Bar(
+            x=list(risk_counts.keys()),
+            y=list(risk_counts.values()),
+            marker_color=[BRAND_COLORS[f"{level.lower()}_{'red' if level=='CRITICAL' else 'orange' if level=='HIGH' else 'yellow' if level=='MEDIUM' else 'green'}"] for level in risk_counts.keys()],
+            text=list(risk_counts.values()),
+            textposition='auto',
+        )
+    ])
+    
+    fig.update_layout(
+        title="Risk Level Distribution",
+        title_font_size=20,
+        title_font_color=BRAND_COLORS["text_dark"],
+        xaxis_title="Risk Level",
+        yaxis_title="Number of Events",
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(family="Arial", size=12, color=BRAND_COLORS["text_dark"]),
+        height=400
+    )
+    
+    return fig
 
-        # Initialize geopolitical monitor
-        geopolitical_monitor = GeopoliticalIntelligenceMonitor()
+def create_threat_timeline(events_data):
+    df = pd.DataFrame([{
+        'date': datetime.strptime(event['date'], '%Y-%m-%d'),
+        'title': event['title'],
+        'risk_level': event['analysis']['risk_assessment']['risk_level'],
+        'risk_score': event['analysis']['risk_assessment']['risk_score'],
+        'location': event['location']
+    } for event in events_data])
+    
+    color_map = {
+        'CRITICAL': BRAND_COLORS["critical_red"],
+        'HIGH': BRAND_COLORS["high_orange"], 
+        'MEDIUM': BRAND_COLORS["medium_yellow"],
+        'LOW': BRAND_COLORS["low_green"]
+    }
+    
+    fig = px.scatter(df, x='date', y='risk_score', 
+                     color='risk_level',
+                     size='risk_score',
+                     hover_data=['title', 'location'],
+                     color_discrete_map=color_map,
+                     title="Threat Timeline & Risk Evolution")
+    
+    fig.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(family="Arial", size=12, color=BRAND_COLORS["text_dark"]),
+        height=500
+    )
+    
+    return fig
 
-        return corporate_data, analyzed_events, eaps, travel_analyzer, geopolitical_monitor
+def create_geographic_risk_map(events_data):
+    location_data = {}
+    for event in events_data:
+        location = event['location']
+        if location not in location_data:
+            location_data[location] = {
+                'events': 0,
+                'max_risk': 0,
+                'avg_risk': 0,
+                'total_risk': 0
+            }
+        
+        risk_score = event['analysis']['risk_assessment']['risk_score']
+        location_data[location]['events'] += 1
+        location_data[location]['total_risk'] += risk_score
+        location_data[location]['max_risk'] = max(location_data[location]['max_risk'], risk_score)
+        location_data[location]['avg_risk'] = location_data[location]['total_risk'] / location_data[location]['events']
+    
+    locations = list(location_data.keys())
+    avg_risks = [location_data[loc]['avg_risk'] for loc in locations]
+    event_counts = [location_data[loc]['events'] for loc in locations]
+    
+    fig = go.Figure(data=[
+        go.Bar(
+            x=locations,
+            y=avg_risks,
+            marker_color=[BRAND_COLORS["critical_red"] if risk >= 15 else BRAND_COLORS["high_orange"] if risk >= 10 else BRAND_COLORS["medium_yellow"] if risk >= 5 else BRAND_COLORS["low_green"] for risk in avg_risks],
+            text=[f"{count} events" for count in event_counts],
+            textposition='auto',
+        )
+    ])
+    
+    fig.update_layout(
+        title="Geographic Risk Assessment",
+        title_font_size=20,
+        title_font_color=BRAND_COLORS["text_dark"],
+        xaxis_title="Location",
+        yaxis_title="Average Risk Score",
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(family="Arial", size=12, color=BRAND_COLORS["text_dark"]),
+        height=400
+    )
+    
+    return fig
 
-    except FileNotFoundError as e:
-        st.error(f"FATAL ERROR: Missing data file - {e}. Please ensure all .json files exist.")
+# --- DATA LOADING ---
+@st.cache_data
+def load_data():
+    try:
+        with open('corporate_data.json', 'r', encoding='utf-8') as f:
+            corporate = json.load(f)
+        events = analyze_events_from_file('events.json')
+        with open('indicators.json', 'r', encoding='utf-8') as f:
+            indicators = json.load(f)
+        return corporate, events, indicators
+    except Exception as e:
+        st.error(f"A critical data file is missing or corrupted: {e}")
         st.stop()
 
-
-# --- Enhanced Data Loading ---
-corporate_data, analyzed_events, eaps, travel_analyzer, geo_monitor = load_all_data()
-
-# --- Enhanced Header ---
-st.markdown("""
-<div class="main-header">
-    <h1>🛡️ Canada Goose Global Security Intelligence Platform</h1>
-    <p>Travel Risk Management • Geopolitical Intelligence • Business-Critical Location Monitoring • Predictive Threat Analysis</p>
-    <small style="color: #cccccc;">Advanced Travel Intelligence & Counter-Intelligence Threat Assessment System</small>
-</div>
-""", unsafe_allow_html=True)
-
-# --- Executive Summary with Enhanced Intelligence ---
-st.subheader("📊 Executive Intelligence Dashboard")
-
-# Enhanced metrics with counter-intelligence data
-total_stores = corporate_data['store_locations']['total_stores']
-high_risk_events_count = sum(1 for event in analyzed_events if event['analysis']['risk_assessment']['risk_score'] >= 15)
-market_focus = corporate_data['key_financials']['focus_market']
-china_revenue_pct = corporate_data['key_financials']['revenue_from_greater_china_pct']
-
-# Get travel risk overview
-travel_overview = travel_analyzer.get_global_risk_overview()
-high_risk_locations = len(travel_overview["high_risk_locations"])
-
-# Get geopolitical intelligence summary
-geo_summary = geo_monitor.get_current_intelligence_summary()
-geopolitical_alerts = geo_summary["alert_counts"]["high_priority"]
-
-# Get counter-intelligence summary if available
-counter_intel_alerts = 0
-if COUNTER_INTEL_AVAILABLE:
-    activist_summary = get_activist_intelligence_summary()
-    counter_intel_alerts = activist_summary["indicators_triggered"]
-
-col1, col2, col3, col4, col5, col6 = st.columns(6)
-
-with col1:
-    st.markdown(
-        f'<div class="metric-card">Global Locations<br><strong style="font-size: 2em;">{total_stores}</strong><br><small>Business-Critical Sites</small></div>',
-        unsafe_allow_html=True)
-
-with col2:
-    st.markdown(
-        f'<div class="metric-card">High-Risk Locations<br><strong style="font-size: 2em; color: #E6332A;">{high_risk_locations}</strong><br><small>Travel Risk ≥ 6.0</small></div>',
-        unsafe_allow_html=True)
-
-with col3:
-    st.markdown(
-        f'<div class="metric-card">Geopolitical Alerts<br><strong style="font-size: 2em; color: #f39c12;">{geopolitical_alerts}</strong><br><small>High Priority</small></div>',
-        unsafe_allow_html=True)
-
-with col4:
-    st.markdown(
-        f'<div class="metric-card">Counter-Intel Alerts<br><strong style="font-size: 2em; color: #8e44ad;">{counter_intel_alerts}</strong><br><small>I&W Indicators</small></div>',
-        unsafe_allow_html=True)
-
-with col5:
-    st.markdown(
-        f'<div class="metric-card">China Market<br><strong style="font-size: 2em;">{china_revenue_pct}%</strong><br><small>Revenue at Risk</small></div>',
-        unsafe_allow_html=True)
-
-with col6:
-    st.markdown(
-        f'<div class="metric-card">Active Events<br><strong style="font-size: 2em;">{high_risk_events_count}</strong><br><small>Security Incidents</small></div>',
-        unsafe_allow_html=True)
-
-# --- Enhanced Business Context Section ---
-st.markdown("---")
-st.subheader("🎯 Business Context & Geopolitical Intelligence")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    st.markdown('<div class="business-critical">', unsafe_allow_html=True)
-    st.write("**Business-Critical Risk Factors (SEC Filings):**")
-    for risk in corporate_data['stated_risk_factors']:
-        st.write(f"• {risk}")
-
-    st.write(f"\n**Key Financial Exposure:**")
-    st.write(f"• Greater China Revenue: **{china_revenue_pct}%**")
-    st.write(f"• Direct-to-Consumer: **{corporate_data['key_financials']['DTC_revenue_pct']}%**")
-    st.info("🎯 Strategic Focus: Protecting high-value operations and China market access")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-with col2:
-    st.markdown('<div class="business-critical">', unsafe_allow_html=True)
-    st.write("**Current Geopolitical Intelligence:**")
-
-    # Display high-priority geopolitical alerts
-    if geo_summary["recent_high_impact_events"]:
-        for event in geo_summary["recent_high_impact_events"]:
-            priority_color = "#e74c3c" if event["priority"] == "HIGH" else "#f39c12"
-            st.markdown(f"""
-            <div style="background: rgba(231, 76, 60, 0.1); padding: 0.5rem; border-radius: 5px; margin: 0.3rem 0; border-left: 3px solid {priority_color};">
-                <strong>{event['headline'][:60]}...</strong><br>
-                <small>{event['region']} | {event['priority']} Priority</small>
-            </div>
-            """, unsafe_allow_html=True)
-    else:
-        st.success("✅ No high-priority geopolitical alerts")
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# --- NEW: Predictive Threat Analysis Section ---
-if COUNTER_INTEL_AVAILABLE:
-    st.markdown("---")
-    st.subheader("🔮 Predictive Threat Analysis: Activist Counter-Intelligence")
-
-    # Initialize the counter-intelligence predictor
-    try:
-        counter_intel_predictor = ActivistCounterIntelligencePredictor()
-        activist_summary = get_activist_intelligence_summary()
-
-        # Display current threat status
-        col1, col2 = st.columns([2, 1])
-
-        with col1:
-            st.markdown('<div class="counter-intel-card">', unsafe_allow_html=True)
-            st.write("**🎯 INTELLIGENCE ASSESSMENT: Post-Fur Strategy Analysis**")
-
-            # Threat level display with color coding
-            threat_level = activist_summary["threat_level"]
-            if threat_level == "HIGH":
-                threat_color = "#e74c3c"
-                threat_icon = "🔴"
-            elif threat_level == "MEDIUM":
-                threat_color = "#f39c12"
-                threat_icon = "🟡"
-            else:
-                threat_color = "#27ae60"
-                threat_icon = "🟢"
-
-            st.markdown(f"""
-            <div style="background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 8px; border-left: 4px solid {threat_color}; margin: 1rem 0;">
-                <strong>{threat_icon} Current Threat Level: {threat_level}</strong><br>
-                <small>Activist groups have shifted from fur protests to sophisticated RDS supply chain investigations</small>
-            </div>
-            """, unsafe_allow_html=True)
-
-            st.write("**🔍 KEY INTELLIGENCE FINDINGS:**")
-            st.write(
-                "• **Moncler Precedent Confirmed**: LAV successfully pressured Moncler (2022) using identical tactics")
-            st.write("• **Target Evolution**: Focus shifted from fur protests to down supply chain credibility")
-            st.write("• **New TTPs**: Professional investigations, executive surveillance, facility infiltration")
-            st.write("• **Geographic Focus**: Milan expansion and Romania manufacturing facility")
-
-            st.write(
-                f"**⚠️ High-Probability Operations Predicted**: {len(activist_summary['high_probability_operations'])}")
-            for operation in activist_summary["high_probability_operations"]:
-                st.write(f"  • {operation.replace('_', ' ').title()}")
-
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with col2:
-            st.markdown('<div class="travel-risk-card">', unsafe_allow_html=True)
-            st.write("**📊 Indicators & Warnings Status**")
-
-            # Get current indicators status
-            current_assessment = counter_intel_predictor.assess_current_threat_level()
-            indicator_summary = current_assessment["indicator_summary"]
-
-            # Display indicator counts with visual elements
-            st.markdown(f"""
-            <div style="text-align: center; padding: 1rem;">
-                <div style="margin: 0.5rem 0;">
-                    <span style="color: #e74c3c; font-size: 1.2em;">🔴 RED: {indicator_summary["RED"]}</span>
-                </div>
-                <div style="margin: 0.5rem 0;">
-                    <span style="color: #f39c12; font-size: 1.2em;">🟡 YELLOW: {indicator_summary["YELLOW"]}</span>
-                </div>
-                <div style="margin: 0.5rem 0;">
-                    <span style="color: #27ae60; font-size: 1.2em;">🟢 GREEN: {indicator_summary["GREEN"]}</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-            if current_assessment["executive_attention_required"]:
-                st.error("🚨 EXECUTIVE ATTENTION REQUIRED")
-            else:
-                st.success("✅ Standard monitoring protocols")
-
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        # Enhanced Indicators & Warnings Display
-        st.write("#### 📈 Indicators & Warnings (I&W) Framework")
-
-        # Create expandable sections for each indicator
-        for indicator_id, indicator in counter_intel_predictor.counter_intel_indicators.items():
-
-            # Color coding for status
-            if indicator.current_status == "RED":
-                status_color = "#e74c3c"
-                status_icon = "🔴"
-            elif indicator.current_status == "YELLOW":
-                status_color = "#f39c12"
-                status_icon = "🟡"
-            else:
-                status_color = "#27ae60"
-                status_icon = "🟢"
-
-            # Trend arrows
-            if indicator.trend == "INCREASING":
-                trend_icon = "📈"
-            elif indicator.trend == "DECREASING":
-                trend_icon = "📉"
-            else:
-                trend_icon = "➡️"
-
-            with st.expander(f"{status_icon} {indicator.description} ({indicator.current_status})"):
-                col_a, col_b = st.columns(2)
-
-                with col_a:
-                    st.write(f"**Status:** {indicator.current_status}")
-                    st.write(f"**Trend:** {trend_icon} {indicator.trend}")
-                    st.write(f"**Confidence:** {indicator.confidence_level}%")
-                    st.write(f"**Last Updated:** {indicator.last_updated.strftime('%Y-%m-%d %H:%M')}")
-
-                with col_b:
-                    st.write(f"**Trigger Threshold:**")
-                    st.write(f"{indicator.trigger_threshold}")
-                    st.write(f"**Impact Assessment:**")
-                    st.write(f"{indicator.impact_assessment}")
-
-        # Operation Predictions Section
-        st.write("#### 🎯 High-Probability Operation Predictions")
-
-        # Milan RDS Investigation Prediction
-        milan_prediction = counter_intel_predictor.generate_operation_prediction("MILAN_RDS_INVESTIGATION")
-
-        st.markdown(f"""
-        <div class="prediction-alert">
-            <h5>🇮🇹 MILAN RDS INVESTIGATION OPERATION</h5>
-            <strong>Prediction Confidence:</strong> {int(milan_prediction['prediction_confidence'] * 100)}%<br>
-            <strong>Moncler Precedent Similarity:</strong> {int(milan_prediction['moncler_precedent_similarity'] * 100)}%<br>
-            <strong>Timeline:</strong> {milan_prediction['predicted_timeline']['predicted_start']} to {milan_prediction['predicted_timeline']['predicted_end']}<br>
-            <strong>Days Until Start:</strong> {milan_prediction['predicted_timeline']['days_until_start']} days
-        </div>
-        """, unsafe_allow_html=True)
-
-        col_x, col_y = st.columns(2)
-
-        with col_x:
-            st.write("**Predicted Tactics:**")
-            for ttp in milan_prediction['operation_details']['likely_ttps']:
-                st.write(f"• {ttp}")
-
-        with col_y:
-            st.write("**Warning Indicators:**")
-            for indicator in milan_prediction['operation_details']['indicators']:
-                st.write(f"• {indicator}")
-
-        # Romania Facility Threat Assessment
-        romania_prediction = counter_intel_predictor.generate_operation_prediction("ROMANIA_INFILTRATION_ATTEMPT")
-
-        st.markdown(f"""
-        <div class="business-critical">
-            <h5>🇷🇴 ROMANIA FACILITY INFILTRATION THREAT</h5>
-            <strong>Prediction Confidence:</strong> {int(romania_prediction['prediction_confidence'] * 100)}%<br>
-            <strong>Target:</strong> Paola Confectii Manufacturing Facility (Titu)<br>
-            <strong>Business Impact:</strong> {romania_prediction['operation_details']['business_impact']}<br>
-            <strong>Primary Objective:</strong> {romania_prediction['operation_details']['objectives'][0]}
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Immediate Action Recommendations
-        st.write("#### ⚡ Immediate Action Recommendations")
-
-        priority_actions = [
-            "🛡️ **Enhanced Executive Travel Security**: Implement counter-surveillance protocols for supply chain personnel traveling to Milan and Romania",
-            "🔒 **Facility Security Upgrade**: Review and enhance access controls at Romania facility with focus on infiltration prevention",
-            "📱 **Secure Communications**: Establish encrypted communication protocols for all supplier-related discussions",
-            "👥 **Personnel Security Awareness**: Conduct counter-surveillance training for executives involved in supply chain operations",
-            "🌐 **Alternative Meeting Protocols**: Develop secure, off-site meeting procedures for sensitive supplier engagements"
-        ]
-
-        for action in priority_actions:
-            st.markdown(f"• {action}")
-
-    except Exception as e:
-        st.error(f"Counter-Intelligence Module Error: {e}")
-        st.info("💡 Ensure activist_counter_intelligence_predictor.py is in the same directory as your main app.")
-
-# Continue with existing sections...
-st.markdown("---")
-
-# --- Enhanced Global Situational Awareness ---
-st.subheader("🌍 Global Travel Risk & Threat Landscape")
-
-col1, col2 = st.columns([2, 1])
-
-# Enhanced Global Map Section - Replace the existing map section in your app_enhanced.py
-
-with col1:
-    st.write("#### 🗺️ Business-Critical Location Risk Assessment")
-
-    # Enhanced map with comprehensive global locations
-    m = folium.Map(location=[45, 10], zoom_start=2, tiles="CartoDB positron")
-
-    # COMPREHENSIVE Canada Goose global locations with accurate coordinates
-    business_locations = {
-        # --- GREATER CHINA (High Revenue Impact) ---
-        "Shanghai, China": [31.2304, 121.4737],
-        "Beijing, China": [39.9042, 116.4074],
-        "Hong Kong": [22.3193, 114.1694],
-
-        # --- NORTH AMERICA (HQ & Manufacturing) ---
-        "Toronto, ON (HQ)": [43.6532, -79.3832],
-        "Winnipeg, MB (Manufacturing)": [49.8951, -97.1384],
-        "Montreal, QC (Manufacturing)": [45.5017, -73.5673],
-        "New York, NY (Flagship)": [40.7589, -73.9851],
-        "Chicago, IL": [41.8781, -87.6298],
-        "Vancouver, BC": [49.2827, -123.1207],
-        "Boston, MA": [42.3601, -71.0589],
-
-        # --- EUROPE (Expansion Focus) ---
-        "London, UK (Flagship)": [51.5074, -0.1278],
-        "Paris, France (Flagship)": [48.8566, 2.3522],
-        "Milan, Italy (Expansion)": [45.4642, 9.1900],  # NEW - Expansion target
-        "Titu, Romania (Manufacturing)": [44.8833, 25.8000],  # NEW - Paola Confectii facility
-        "Stockholm, Sweden": [59.3293, 18.0686],
-        "Berlin, Germany": [52.5200, 13.4050],
-        "Dublin, Ireland": [53.3498, -6.2603],
-        "Zurich, Switzerland": [47.3769, 8.5417],
-
-        # --- ASIA PACIFIC ---
-        "Tokyo, Japan": [35.6762, 139.6503],
-        "Seoul, South Korea": [37.5665, 126.9780],
-        "Singapore": [1.3521, 103.8198],
-        "Sydney, Australia": [33.8688, 151.2093],
-
-        # --- ADDITIONAL MANUFACTURING LOCATIONS (Research these) ---
-        "Scarborough, ON (Manufacturing)": [43.7764, -79.2318],
-        "Boisbriand, QC (Manufacturing)": [45.6167, -73.8333],
-    }
-
-    # Enhanced location categorization for visual distinction
-    location_categories = {
-        # Critical business locations (red markers)
-        "headquarters": ["Toronto, ON (HQ)"],
-        "manufacturing": [
-            "Winnipeg, MB (Manufacturing)",
-            "Montreal, QC (Manufacturing)",
-            "Titu, Romania (Manufacturing)",
-            "Scarborough, ON (Manufacturing)",
-            "Boisbriand, QC (Manufacturing)"
-        ],
-        "flagship_stores": [
-            "New York, NY (Flagship)",
-            "London, UK (Flagship)",
-            "Paris, France (Flagship)"
-        ],
-        "expansion_targets": ["Milan, Italy (Expansion)"],
-        "high_revenue_markets": ["Shanghai, China", "Beijing, China", "Hong Kong"],
-        "standard_retail": [
-            "Chicago, IL", "Vancouver, BC", "Boston, MA", "Stockholm, Sweden",
-            "Berlin, Germany", "Dublin, Ireland", "Zurich, Switzerland",
-            "Tokyo, Japan", "Seoul, South Korea", "Singapore", "Sydney, Australia"
-        ]
-    }
-
-    # Color and icon mapping for different location types
-    location_styling = {
-        "headquarters": {"color": "darkred", "icon": "home", "size": "large"},
-        "manufacturing": {"color": "red", "icon": "cog", "size": "medium"},
-        "flagship_stores": {"color": "orange", "icon": "shopping-bag", "size": "medium"},
-        "expansion_targets": {"color": "purple", "icon": "star", "size": "medium"},
-        "high_revenue_markets": {"color": "darkblue", "icon": "usd", "size": "medium"},
-        "standard_retail": {"color": "blue", "icon": "shopping-cart", "size": "small"}
-    }
-
-    # Add markers for each location
-    for location, coords in business_locations.items():
-        # Determine location category
-        location_category = "standard_retail"  # default
-        for category, locations in location_categories.items():
-            if location in locations:
-                location_category = category
-                break
-
-        # Get styling for this category
-        styling = location_styling[location_category]
-
-        # Get travel risk assessment for this location
-        # Handle locations that might not be in travel analyzer
-        location_name_clean = location.split(" (")[0]  # Remove parenthetical descriptions
-
-        try:
-            risk_assessment = travel_analyzer.assess_location_risk(location_name_clean)
-
-            if "error" not in risk_assessment:
-                risk_score = risk_assessment["overall_risk_score"]
-                risk_level = risk_assessment["risk_level"]
-                business_function = risk_assessment["business_function"]
-                specific_threats = risk_assessment["specific_threats"]
-                revenue_impact = risk_assessment["revenue_impact"]
-            else:
-                # Fallback data for locations not in travel analyzer
-                risk_score = 4.0
-                risk_level = "MEDIUM"
-                business_function = "Business Operations"
-                specific_threats = ["Standard business risks"]
-                revenue_impact = "Regional market presence"
-        except:
-            # Fallback for any errors
-            risk_score = 4.0
-            risk_level = "MEDIUM"
-            business_function = "Business Operations"
-            specific_threats = ["Standard business risks"]
-            revenue_impact = "Regional market presence"
-
-        # Enhanced popup with comprehensive information
-        popup_html = f"""
-        <div style="width: 280px;">
-            <h4 style="color: {styling['color']};">{location}</h4>
-            <strong>Category:</strong> {location_category.replace('_', ' ').title()}<br>
-            <strong>Business Function:</strong> {business_function}<br>
-            <strong>Travel Risk Score:</strong> {risk_score:.1f}/10<br>
-            <strong>Risk Level:</strong> {risk_level}<br>
-            <strong>Revenue Impact:</strong> {revenue_impact}<br>
-            <hr>
-            <strong>Key Threats:</strong><br>
-            {'<br>'.join(f"• {threat}" for threat in specific_threats[:2])}<br>
-        """
-
-        # Add special intelligence for key locations
-        if "Milan" in location:
-            popup_html += """
-            <hr style="border-color: purple;">
-            <strong style="color: purple;">🎯 EXPANSION INTELLIGENCE:</strong><br>
-            • LAV headquarters location<br>
-            • High activist surveillance risk<br>
-            • Moncler precedent applies<br>
-            """
-        elif "Romania" in location:
-            popup_html += """
-            <hr style="border-color: red;">
-            <strong style="color: red;">🏭 FACILITY INTELLIGENCE:</strong><br>
-            • Paola Confectii acquisition (2023)<br>
-            • Key European manufacturing asset<br>
-            • Infiltration risk elevated<br>
-            """
-        elif "Shanghai" in location or "Beijing" in location:
-            popup_html += """
-            <hr style="border-color: darkblue;">
-            <strong style="color: darkblue;">💰 REVENUE INTELLIGENCE:</strong><br>
-            • 17.7% total revenue exposure<br>
-            • Geopolitical tensions active<br>
-            • Diplomatic risk monitoring<br>
-            """
-
-        popup_html += "</div>"
-
-        # Determine marker size based on importance
-        if location_category in ["headquarters", "manufacturing", "flagship_stores"]:
-            marker_size = 12
-        elif location_category in ["expansion_targets", "high_revenue_markets"]:
-            marker_size = 10
-        else:
-            marker_size = 8
-
-        # Create marker with enhanced styling
-        folium.Marker(
-            location=coords,
-            popup=folium.Popup(popup_html, max_width=300),
-            icon=folium.Icon(
-                color=styling["color"],
-                icon=styling["icon"],
-                prefix='fa'
-            ),
-            tooltip=f"{location}: {risk_level} Risk | {location_category.replace('_', ' ').title()}"
-        ).add_to(m)
-
-    # Add special threat zones with circles
-    # China tension zone
-    folium.Circle(
-        location=[35, 115],
-        radius=800000,  # 800km radius
-        popup="Greater China Market - 17.7% Revenue Exposure",
-        color="red",
-        fill=True,
-        fillColor="red",
-        fillOpacity=0.1,
-        opacity=0.3
-    ).add_to(m)
-
-    # European activist zone
-    folium.Circle(
-        location=[45.4642, 9.1900],  # Milan center
-        radius=300000,  # 300km radius
-        popup="European Activist Activity Zone - LAV/PETA Focus",
-        color="purple",
-        fill=True,
-        fillColor="purple",
-        fillOpacity=0.1,
-        opacity=0.3
-    ).add_to(m)
-
-    # Add legend using HTML
-    legend_html = '''
-    <div style="position: fixed; 
-                top: 10px; right: 10px; width: 200px; height: 160px; 
-                background-color: white; border:2px solid grey; z-index:9999; 
-                font-size:12px; padding: 10px">
-    <h4>Location Categories</h4>
-    <p><i class="fa fa-home" style="color:darkred"></i> Headquarters</p>
-    <p><i class="fa fa-cog" style="color:red"></i> Manufacturing</p>
-    <p><i class="fa fa-shopping-bag" style="color:orange"></i> Flagship Stores</p>
-    <p><i class="fa fa-star" style="color:purple"></i> Expansion Targets</p>
-    <p><i class="fa fa-usd" style="color:darkblue"></i> High Revenue Markets</p>
-    <p><i class="fa fa-shopping-cart" style="color:blue"></i> Standard Retail</p>
+# --- MAIN APPLICATION ---
+def main():
+    # Page Configuration
+    st.set_page_config(
+        page_title="CG - Global Security Intelligence", 
+        page_icon="🛡️", 
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+    
+    # Load custom CSS
+    load_custom_css()
+    
+    # Load data
+    corporate_data, events_data, indicators_data = load_data()
+    
+    # Main Header
+    st.markdown("""
+    <div class="main-header">
+        <h1>🛡️ Canada Goose Global Security Intelligence Platform</h1>
+        <p>Strategic Threat Analysis & Risk Mitigation Dashboard</p>
     </div>
-    '''
-    m.get_root().html.add_child(folium.Element(legend_html))
-
-    # Display the enhanced map
-    st_folium(m, height=500, use_container_width=True)
-
-    # Add map insights below
-    st.write("#### 📊 Global Footprint Intelligence Summary")
-
-    col_a, col_b, col_c = st.columns(3)
-
-    with col_a:
-        st.write("**🏭 Manufacturing Locations:**")
-        st.write("• Canada: 5 facilities (Winnipeg, Montreal, Toronto area)")
-        st.write("• Europe: 1 facility (Romania - Paola Confectii)")
-        st.write("• **Risk Focus**: Romania facility infiltration")
-
-    with col_b:
-        st.write("**🎯 Expansion Targets:**")
-        st.write("• Milan, Italy (2025 priority)")
-        st.write("• **Intelligence**: LAV headquarters location")
-        st.write("• **Moncler Precedent**: 70% campaign success probability")
-
-    with col_c:
-        st.write("**💰 Revenue Concentration:**")
-        st.write("• Greater China: 17.7% total revenue")
-        st.write("• North America: Primary market")
-        st.write("• **Risk Focus**: Geopolitical market access")
-
-    for location, coords in business_locations.items():
-        # Get travel risk assessment for this location
-        risk_assessment = travel_analyzer.assess_location_risk(location)
-
-        if "error" not in risk_assessment:
-            risk_score = risk_assessment["overall_risk_score"]
-            risk_level = risk_assessment["risk_level"]
-            business_function = risk_assessment["business_function"]
-
-            # Color coding based on risk level
-            if risk_score >= 8:
-                color, icon = "darkred", "exclamation-sign"
-            elif risk_score >= 6:
-                color, icon = "red", "warning-sign"
-            elif risk_score >= 4:
-                color, icon = "orange", "info-sign"
-            else:
-                color, icon = "green", "ok-sign"
-
-            # Enhanced popup with travel intelligence
-            popup_html = f"""
-            <div style="width: 250px;">
-                <h4>{location}</h4>
-                <strong>Business Function:</strong> {business_function}<br>
-                <strong>Travel Risk Score:</strong> {risk_score:.1f}/10<br>
-                <strong>Risk Level:</strong> {risk_level}<br>
-                <strong>Revenue Impact:</strong> {risk_assessment['revenue_impact']}<br>
-                <hr>
-                <strong>Top Threats:</strong><br>
-                {'<br>'.join(f"• {threat}" for threat in risk_assessment['specific_threats'][:2])}
-            </div>
-            """
-
-            folium.Marker(
-                location=coords,
-                popup=folium.Popup(popup_html, max_width=300),
-                icon=folium.Icon(color=color, icon=icon),
-                tooltip=f"{location}: {risk_level} Risk"
-            ).add_to(m)
-
-    st_folium(m, height=450, use_container_width=True)
-
-with col2:
-    st.write("#### 📡 Integrated Intelligence Feed")
-
-    # Combine security events and geopolitical intelligence
-    all_intelligence = []
-
-    # Add security events
-    for event in analyzed_events:
-        risk_score = event['analysis']['risk_assessment']['risk_score']
-        all_intelligence.append({
-            "type": "Security Event",
-            "title": event['title'],
-            "date": event['date'],
-            "location": event['location'],
-            "priority": "HIGH" if risk_score >= 20 else "MEDIUM" if risk_score >= 15 else "LOW",
-            "score": risk_score,
-            "source": event['source']
-        })
-
-    # Add geopolitical intelligence
-    for alert in geo_monitor.intelligence_feeds:
-        all_intelligence.append({
-            "type": "Geopolitical Intel",
-            "title": alert['headline'],
-            "date": alert['timestamp'].strftime("%Y-%m-%d"),
-            "location": alert['region'].title(),
-            "priority": alert['priority'],
-            "score": alert['confidence_level'],
-            "source": "Geopolitical Monitor"
-        })
-
-    # Add counter-intelligence alerts if available
-    if COUNTER_INTEL_AVAILABLE:
-        all_intelligence.append({
-            "type": "Counter-Intel",
-            "title": "Predictive Alert: Milan RDS Investigation Operation",
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "location": "Milan, Italy",
-            "priority": "HIGH",
-            "score": 85,
-            "source": "Predictive Analysis"
-        })
-
-    # Sort by priority and date
-    priority_order = {"HIGH": 3, "MEDIUM": 2, "LOW": 1}
-    all_intelligence.sort(key=lambda x: (priority_order.get(x["priority"], 0), x["date"]), reverse=True)
-
-    # Display integrated intelligence feed
-    for intel in all_intelligence[:8]:  # Show top 8
-        priority_colors = {"HIGH": "#e74c3c", "MEDIUM": "#f39c12", "LOW": "#3498db"}
-        color = priority_colors.get(intel["priority"], "#6c757d")
-
-        # Special styling for counter-intel
-        if intel["type"] == "Counter-Intel":
-            color = "#8e44ad"
-
+    """, unsafe_allow_html=True)
+    
+    # Key Metrics Row
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
         st.markdown(f"""
-        <div style="background: #2c3e50; padding: 1rem; border-radius: 5px; margin: 0.5rem 0; border-left: 4px solid {color}; color: white;">
-            <strong>{intel['title'][:45]}...</strong><br>
-            <small>📅 {intel['date']} | 📍 {intel['location']} | 🔍 {intel['type']}</small><br>
-            <small>🎯 {intel['priority']} Priority | Score: {intel['score']}</small>
+        <div class="metric-container">
+            <div class="metric-value">{corporate_data['store_locations']['total_stores']}</div>
+            <div class="metric-label">Stores Monitored</div>
         </div>
         """, unsafe_allow_html=True)
-
-st.markdown("---")
-
-# --- Enhanced Executive Travel Risk Assessment ---
-st.subheader("✈️ Executive Travel Risk Assessment & Security Planning")
-
-# Travel destination selection with business context
-business_critical_destinations = [
-    "Shanghai, China", "Beijing, China", "London, UK", "Paris, France",
-    "Toronto, ON", "New York, NY", "Winnipeg, MB", "Milan, Italy", "Titu, Romania"
-]
-
-col1, col2 = st.columns([1, 2])
-
-with col1:
-    st.write("#### 🎯 Travel Destination Selection")
-
-    selected_destination = st.selectbox(
-        "Select Business-Critical Destination:",
-        [""] + business_critical_destinations
-    )
-
-    travel_purpose = st.selectbox(
-        "Travel Purpose:",
-        ["Business Operations", "Executive Meetings", "Store Inspection", "Crisis Response", "Board Meeting",
-         "Supply Chain Management"]
-    )
-
-    executive_level = st.selectbox(
-        "Executive Level:",
-        ["Senior Leadership", "C-Suite", "Board Member", "Regional Director", "Supply Chain Executive"]
-    )
-
-    if st.button("🔍 Generate Travel Risk Assessment", type="primary"):
-        st.session_state.generate_travel_brief = True
-        st.session_state.travel_destination = selected_destination
-        st.session_state.travel_purpose = travel_purpose
-        st.session_state.executive_level = executive_level
-
-with col2:
-    if hasattr(st.session_state,
-               'generate_travel_brief') and st.session_state.generate_travel_brief and selected_destination:
-
-        st.write(f"#### 📋 Executive Travel Security Brief: {selected_destination}")
-
-        # Generate comprehensive travel brief
-        with st.spinner("🔍 Analyzing travel risks and generating security protocols..."):
-            travel_brief = travel_analyzer.generate_executive_travel_brief(
-                st.session_state.travel_destination,
-                st.session_state.travel_purpose,
-                st.session_state.executive_level
-            )
-
-            if "error" not in travel_brief:
-                # Display executive summary
-                st.markdown('<div class="travel-risk-card">', unsafe_allow_html=True)
-
-                st.write(f"**Classification:** {travel_brief['classification']}")
-                st.write(f"**Assessment Date:** {travel_brief['assessment_date']}")
-                st.write(f"**Executive Level:** {travel_brief['executive_level']}")
-                st.write(f"**Travel Purpose:** {travel_brief['travel_purpose']}")
-
-                # Executive Summary (BLUF)
-                summary = travel_brief["executive_summary"]
-                st.markdown("---")
-                st.write("#### Executive Summary (BLUF)")
-                st.write(f"**Overall Risk Level:** {summary['overall_risk']}")
-                st.write(f"**Business Context:** {summary['business_context']}")
-                st.write(f"**Recommendation:** {summary['recommendation']}")
-
-                if summary["key_concerns"]:
-                    st.write("**Key Concerns:**")
-                    for concern in summary["key_concerns"]:
-                        st.write(f"• {concern}")
-
-                st.markdown('</div>', unsafe_allow_html=True)
-
-                # Enhanced Travel Security if Counter-Intel available
-                if COUNTER_INTEL_AVAILABLE and selected_destination:
-                    enhanced_recommendations = get_travel_security_enhancements(selected_destination)
-
-                    with st.expander("🕵️ Enhanced Counter-Intelligence Travel Protocols"):
-                        st.write("**Counter-Surveillance Recommendations:**")
-                        for recommendation in enhanced_recommendations:
-                            st.write(f"• {recommendation}")
-
-                        # Location-specific intelligence
-                        if "milan" in selected_destination.lower():
-                            st.warning(
-                                "🔍 **Milan-Specific Intelligence**: LAV headquarters located in Milan. Heightened risk of executive surveillance during supplier meetings. Recommend alternative meeting locations outside Milan city center.")
-
-                        elif "romania" in selected_destination.lower():
-                            st.error(
-                                "⚠️ **Romania Facility Alert**: Paola Confectii facility represents critical European supply chain asset. Infiltration attempts highly likely. Coordinate all visits with facility security.")
-
-            else:
-                st.error(f"Could not generate travel brief: {travel_brief['error']}")
-
-# --- Generate Professional Intelligence Brief ---
-st.markdown("---")
-if st.button("📊 Generate Executive Intelligence Brief", type="primary"):
-    with st.expander("📈 Executive Intelligence Brief", expanded=True):
-        st.markdown('<div class="executive-brief">', unsafe_allow_html=True)
-
-        st.write(f"**Intelligence Brief for Week Ending:** {datetime.now().strftime('%Y-%m-%d')}")
-        st.write(f"**Classification:** FOR OFFICIAL USE ONLY")
+    
+    with col2:
+        high_risk_events = sum(1 for e in events_data if e['analysis']['risk_assessment']['risk_level'] in ["HIGH", "CRITICAL"])
+        st.markdown(f"""
+        <div class="metric-container">
+            <div class="metric-value" style="color: {BRAND_COLORS['accent_red']}">{high_risk_events}</div>
+            <div class="metric-label">High-Risk Events</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        total_risk_score = sum(e['analysis']['risk_assessment']['risk_score'] for e in events_data)
+        st.markdown(f"""
+        <div class="metric-container">
+            <div class="metric-value">{total_risk_score}</div>
+            <div class="metric-label">Total Risk Score</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown(f"""
+        <div class="metric-container">
+            <div class="metric-value">{corporate_data['key_financials']['focus_market']}</div>
+            <div class="metric-label">Key Market Focus</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Predictive Threat Analysis
+    st.markdown("### 🔮 Predictive Threat Analysis: Indicators & Warnings")
+    
+    for threat in indicators_data['threats']:
+        triggered_count = 0
+        for indicator in threat['indicators']:
+            if "RDS" in indicator['description'] or "media" in indicator['description']:
+                indicator['status'] = "YELLOW"
+                triggered_count += 1
+        
+        # Determine threat status
+        if triggered_count >= threat['warning_threshold']:
+            threat_status = "CRITICAL"
+            threat_color = BRAND_COLORS["critical_red"]
+        elif triggered_count >= threat['warning_threshold'] - 1:
+            threat_status = "WARNING" 
+            threat_color = BRAND_COLORS["high_orange"]
+        else:
+            threat_status = "NORMAL"
+            threat_color = BRAND_COLORS["low_green"]
+        
+        with st.expander(f"**{threat['threat_name']}** - Status: **{threat_status}**"):
+            col_left, col_right = st.columns([2, 1])
+            
+            with col_left:
+                st.write(f"**Warning Threshold:** {threat['warning_threshold']} indicators")
+                
+                for indicator in threat['indicators']:
+                    status_class = f"status-{indicator['status'].lower()}"
+                    st.markdown(f"""
+                    <div style="margin: 0.5rem 0;">
+                        <span class="status-indicator {status_class}"></span>
+                        {indicator['description']} 
+                        <strong style="color: {BRAND_COLORS[f'{indicator["status"].lower()}_{"red" if indicator["status"]=="RED" else "yellow" if indicator["status"]=="YELLOW" else "green"}']}"}>
+                            ({indicator['status']})
+                        </strong>
+                    </div>
+                    """, unsafe_allow_html=True)
+            
+            with col_right:
+                # Progress indicator
+                progress = triggered_count / threat['warning_threshold']
+                st.metric("Triggered Indicators", f"{triggered_count}/{len(threat['indicators'])}")
+                st.progress(progress)
+                
+                if triggered_count >= threat['warning_threshold']:
+                    st.markdown(f"""
+                    <div class="alert-container alert-danger">
+                        <strong>⚠️ WARNING THRESHOLD EXCEEDED</strong><br>
+                        Proactive mitigation protocols should be initiated.
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown(f"""
+                    <div class="alert-container alert-success">
+                        <strong>✅ Threat Level Normal</strong><br>
+                        Standard monitoring in effect.
+                    </div>
+                    """, unsafe_allow_html=True)
+    
+    # Analytics Dashboard
+    st.markdown("### 📊 Intelligence Analytics Dashboard")
+    
+    tab1, tab2, tab3 = st.tabs(["🌍 Geographic Analysis", "📈 Risk Trends", "📡 Live Intelligence Feed"])
+    
+    with tab1:
+        col_chart1, col_chart2 = st.columns(2)
+        
+        with col_chart1:
+            st.plotly_chart(create_risk_distribution_chart(events_data), use_container_width=True)
+        
+        with col_chart2:
+            st.plotly_chart(create_geographic_risk_map(events_data), use_container_width=True)
+        
+        # Simple asset map
+        st.subheader("Global Asset Map")
+        map_data = pd.DataFrame([
+            {"lat": 43.6532, "lon": -79.3832, "location": "Toronto HQ", "risk": "Medium"},
+            {"lat": 40.7128, "lon": -74.0060, "location": "New York Flagship", "risk": "High"},
+            {"lat": 51.5074, "lon": -0.1278, "location": "London Flagship", "risk": "High"},
+            {"lat": 48.8566, "lon": 2.3522, "location": "Paris Flagship", "risk": "High"},
+            {"lat": 39.9042, "lon": 116.4074, "location": "Beijing Flagship", "risk": "High"},
+            {"lat": 45.4642, "lon": 9.1900, "location": "Milan (Expansion)", "risk": "High"},
+        ])
+        st.map(map_data)
+    
+    with tab2:
+        st.plotly_chart(create_threat_timeline(events_data), use_container_width=True)
+        
+        # Risk trend analysis
+        st.markdown("#### Risk Trend Analysis")
+        trend_data = []
+        for event in sorted(events_data, key=lambda x: x['date']):
+            trend_data.append({
+                'Date': event['date'],
+                'Cumulative Risk': sum(e['analysis']['risk_assessment']['risk_score'] 
+                                     for e in events_data 
+                                     if e['date'] <= event['date'])
+            })
+        
+        df_trend = pd.DataFrame(trend_data)
+        fig_trend = px.line(df_trend, x='Date', y='Cumulative Risk', 
+                           title="Cumulative Risk Score Over Time",
+                           line_shape='spline')
+        fig_trend.update_traces(line_color=BRAND_COLORS["accent_red"], line_width=3)
+        fig_trend.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(family="Arial", size=12, color=BRAND_COLORS["text_dark"])
+        )
+        st.plotly_chart(fig_trend, use_container_width=True)
+    
+    with tab3:
+        st.markdown("#### Live Intelligence Feed")
+        
+        for event in sorted(events_data, key=lambda x: x['date'], reverse=True):
+            level = event['analysis']['risk_assessment']['risk_level']
+            score = event['analysis']['risk_assessment']['risk_score']
+            
+            risk_class = f"risk-{level.lower()}"
+            
+            st.markdown(f"""
+            <div class="risk-card {risk_class}">
+                <h4 style="margin: 0 0 0.5rem 0; color: {BRAND_COLORS['text_dark']}">{event['title']}</h4>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <span><strong>Risk Level:</strong> 
+                        <span class="status-indicator status-{level.lower()}"></span>
+                        {level} (Score: {score})
+                    </span>
+                    <span style="color: {BRAND_COLORS['text_light']};">{event['date']}</span>
+                </div>
+                <p style="margin: 0.5rem 0; color: {BRAND_COLORS['text_light']};">
+                    <strong>Location:</strong> {event['location']} | 
+                    <strong>Type:</strong> {event['analysis']['threat_type']}
+                </p>
+                <p style="margin: 0; color: {BRAND_COLORS['text_dark']};">{event['details']}</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Travel Risk Assessment Sidebar
+    with st.sidebar:
+        st.markdown("### ✈️ Travel Risk Generator")
         st.markdown("---")
+        
+        destination_options = ["Milan, Italy", "Paris, France", "Toronto, ON", "Beijing, China", "New York, NY", "Romania"]
+        destination = st.selectbox("Select Destination", destination_options)
+        traveler_role = st.selectbox("Traveler Role", 
+                                   ["Executive Leadership", "Supply Chain Manager", "Retail Operations"])
+        
+        if st.button("🚨 Generate Travel Brief", use_container_width=True):
+            # This will be displayed in the main area
+            st.session_state.show_travel_brief = True
+            st.session_state.travel_destination = destination
+            st.session_state.travel_role = traveler_role
+    
+    # Travel Brief Display
+    if hasattr(st.session_state, 'show_travel_brief') and st.session_state.show_travel_brief:
+        st.markdown("---")
+        st.markdown(f"### 🚨 Intelligence Brief: Travel to {st.session_state.travel_destination}")
+        st.markdown(f"**Role:** {st.session_state.travel_role}")
+        
+        col_brief1, col_brief2 = st.columns([2, 1])
+        
+        with col_brief1:
+            st.markdown("#### General Threat Assessment")
+            st.markdown("""
+            <div class="alert-container alert-warning">
+                <strong>Standard Precautions Advised:</strong><br>
+                • Be aware of surroundings at all times<br>
+                • Secure personal belongings and avoid displaying high-value items<br>
+                • Maintain operational security regarding travel purpose
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Check for location-specific threats
+            found_relevant_event = False
+            for event in events_data:
+                if st.session_state.travel_destination.split(',')[0] in event['location']:
+                    st.markdown(f"""
+                    <div class="alert-container alert-danger">
+                        <strong>🚨 CURRENT THREAT ALERT:</strong><br>
+                        <strong>{event['title']}</strong><br>
+                        {event['details']}
+                    </div>
+                    """, unsafe_allow_html=True)
+                    found_relevant_event = True
+            
+            if not found_relevant_event:
+                st.markdown("""
+                <div class="alert-container alert-success">
+                    <strong>✅ No Direct Threats Identified</strong><br>
+                    No specific threats to this location in current intelligence feed.
+                </div>
+                """, unsafe_allow_html=True)
+        
+        with col_brief2:
+            st.markdown("#### Emergency Contacts")
+            st.json({
+                "Global Security 24/7": "+1-416-555-0100",
+                "Local Embassy": "See pre-travel package",
+                "Medical/Security (ISOS)": "Mobile app available"
+            })
+            
+            if st.button("Clear Brief"):
+                st.session_state.show_travel_brief = False
+                st.rerun()
 
-        # Enhanced BLUF with counter-intelligence context
-        st.write("#### Bottom Line Up Front (BLUF):")
-
-        # Construct comprehensive BLUF
-        bluf_components = []
-
-        # Counter-intelligence threats if available
-        if COUNTER_INTEL_AVAILABLE:
-            activist_summary = get_activist_intelligence_summary()
-            if activist_summary["executive_attention_required"]:
-                bluf_components.append(
-                    f"HIGH-PRIORITY: Activist counter-intelligence operations predicted with {len(activist_summary['high_probability_operations'])} high-probability scenarios")
-
-        # Geopolitical threats
-        high_geo_alerts = [alert for alert in geo_monitor.intelligence_feeds if alert["priority"] == "HIGH"]
-        if high_geo_alerts:
-            bluf_components.append(
-                f"{len(high_geo_alerts)} high-priority geopolitical events affecting business operations")
-
-        # Travel risk status
-        high_risk_travel_locations = len(travel_overview["high_risk_locations"])
-        if high_risk_travel_locations > 0:
-            bluf_components.append(f"{high_risk_travel_locations} business-critical locations at elevated travel risk")
-
-        # China market specific
-        china_threats = [threat for threat in geo_monitor.threat_indicators if "china" in threat]
-        if china_threats:
-            bluf_components.append(f"Greater China market tensions threatening {china_revenue_pct}% revenue exposure")
-
-        # Security events
-        critical_events = [e for e in analyzed_events if e['analysis']['risk_assessment']['risk_score'] >= 20]
-        if critical_events:
-            bluf_components.append(f"{len(critical_events)} critical security incidents requiring executive attention")
-
-        if bluf_components:
-            bluf_text = "Primary concerns: " + "; ".join(
-                bluf_components) + ". Enhanced monitoring and executive briefings recommended."
-        else:
-            bluf_text = "No critical threats identified this period. Standard monitoring protocols maintained across all regions."
-
-        st.info(bluf_text)
-
-        # Intelligence Summary Sections
-        col_a, col_b, col_c = st.columns(3)
-
-        with col_a:
-            st.write("#### 🌍 Geopolitical Intelligence Summary")
-            geo_brief = geo_monitor.generate_executive_geopolitical_brief()
-
-            st.write(f"**Total Alerts:** {geo_brief['executive_summary']['total_alerts']}")
-            st.write(f"**High Priority:** {geo_brief['executive_summary']['high_priority_issues']}")
-
-            if geo_brief["priority_concerns"]:
-                st.write("**Priority Concerns:**")
-                for concern in geo_brief["priority_concerns"][:3]:
-                    st.write(f"• {concern['concern']}")
-
-            st.write("#### ✈️ Travel Risk Assessment")
-            st.write(f"**Locations Monitored:** {travel_overview['total_locations']}")
-            st.write(f"**High-Risk Locations:** {len(travel_overview['high_risk_locations'])}")
-
-            if travel_overview["high_risk_locations"]:
-                st.write("**Elevated Risk Destinations:**")
-                for location in travel_overview["high_risk_locations"][:3]:
-                    st.write(f"• {location['location']} ({location['risk_level']})")
-
-        with col_b:
-            if COUNTER_INTEL_AVAILABLE:
-                st.write("#### 🕵️ Counter-Intelligence Assessment")
-                counter_intel_predictor = ActivistCounterIntelligencePredictor()
-                current_assessment = counter_intel_predictor.assess_current_threat_level()
-
-                st.write(f"**Threat Level:** {current_assessment['overall_threat_level']}")
-                st.write(
-                    f"**Active Indicators:** {current_assessment['indicator_summary']['YELLOW'] + current_assessment['indicator_summary']['RED']}")
-
-                if current_assessment["high_probability_operations"]:
-                    st.write("**Predicted Operations:**")
-                    for op in current_assessment["high_probability_operations"]:
-                        st.write(f"• {op.replace('_', ' ').title()}")
-
-                st.write("**Key Assessments:**")
-                st.write("• Moncler precedent indicates 70% probability of similar campaign success")
-                st.write("• LAV focus has shifted to RDS certification challenges")
-                st.write("• Executive surveillance risk elevated in Milan and Romania")
-
-        with col_c:
-            st.write("#### 🚨 Security Incident Summary")
-
-            # Event analysis
-            event_by_risk = {"CRITICAL": [], "HIGH": [], "MEDIUM": []}
-            for event in analyzed_events:
-                score = event['analysis']['risk_assessment']['risk_score']
-                if score >= 20:
-                    event_by_risk["CRITICAL"].append(event)
-                elif score >= 15:
-                    event_by_risk["HIGH"].append(event)
-                elif score >= 10:
-                    event_by_risk["MEDIUM"].append(event)
-
-            st.write(f"**Critical Events:** {len(event_by_risk['CRITICAL'])}")
-            st.write(f"**High-Risk Events:** {len(event_by_risk['HIGH'])}")
-            st.write(f"**Medium-Risk Events:** {len(event_by_risk['MEDIUM'])}")
-
-            if event_by_risk["CRITICAL"] or event_by_risk["HIGH"]:
-                st.write("**Executive Attention Required:**")
-                for event in (event_by_risk["CRITICAL"] + event_by_risk["HIGH"])[:3]:
-                    st.write(f"• {event['title']} (Score: {event['analysis']['risk_assessment']['risk_score']})")
-
-            st.write("#### 💼 Business Impact Assessment")
-            if "greater_china_risk" in travel_overview.get("business_impact_summary", {}):
-                china_data = travel_overview["business_impact_summary"]["greater_china_risk"]
-                st.write(f"**Greater China Risk Score:** {china_data['average_risk_score']}/10")
-                st.write(f"**Revenue at Risk:** {china_data['revenue_at_risk']}")
-                st.write(f"**Status:** {china_data['status']}")
-
-        # Strategic Recommendations
-        st.write("#### 🎯 Strategic Recommendations")
-
-        strategic_recommendations = [
-            "**IMMEDIATE**: Implement enhanced counter-surveillance protocols for supply chain executives traveling to Milan and Romania",
-            "**STRATEGIC**: Develop proactive RDS transparency initiatives to prevent activist certification challenges",
-            "**OPERATIONAL**: Enhance facility security at Romania manufacturing location with focus on infiltration prevention",
-            "**INTELLIGENCE**: Increase monitoring of LAV and PETA operational planning and coordination activities",
-            "**COMMUNICATIONS**: Prepare crisis communication strategies for potential supply chain exposé scenarios"
-        ]
-
-        if COUNTER_INTEL_AVAILABLE:
-            for recommendation in strategic_recommendations:
-                st.write(f"• {recommendation}")
-        else:
-            st.write("• Continue standard security monitoring across all regions")
-            st.write("• Review and update threat assessment protocols")
-            st.write("• Conduct routine executive travel security briefings")
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-# --- Generate Counter-Intelligence Brief (if available) ---
-if COUNTER_INTEL_AVAILABLE:
-    if st.button("🕵️ Generate Executive Counter-Intelligence Brief", type="primary"):
-        with st.expander("🕵️ Executive Counter-Intelligence Assessment", expanded=True):
-            st.markdown('<div class="executive-brief">', unsafe_allow_html=True)
-
-            # Generate the brief
-            counter_intel_predictor = ActivistCounterIntelligencePredictor()
-            intel_brief = counter_intel_predictor.generate_intelligence_brief()
-
-            # Display with proper formatting
-            st.text(intel_brief)
-
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            # Add download option
-            st.download_button(
-                label="📥 Download Counter-Intelligence Brief",
-                data=intel_brief,
-                file_name=f"CG_Counter_Intelligence_Brief_{datetime.now().strftime('%Y%m%d')}.txt",
-                mime="text/plain"
-            )
-
-# --- Footer ---
-st.markdown("---")
-st.markdown(f"""
-<div style='text-align: center; color: #666; padding: 1rem;'>
-    <small>Canada Goose Global Security Intelligence Platform | Enhanced Travel Risk & Geopolitical Intelligence | Predictive Threat Analysis | 
-    Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 
-    Business-Critical Location Monitoring Active | Counter-Intelligence Prediction System {"ACTIVE" if COUNTER_INTEL_AVAILABLE else "OFFLINE"}</small>
-</div>
-""", unsafe_allow_html=True)
+if __name__ == "__main__":
+    main()
