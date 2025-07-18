@@ -522,11 +522,15 @@ def main():
                 
                 for indicator in threat['indicators']:
                     status_class = f"status-{indicator['status'].lower()}"
+                    # Fix the color selection logic
+                    status_color_key = f"{indicator['status'].lower()}_{'red' if indicator['status']=='RED' else 'yellow' if indicator['status']=='YELLOW' else 'green'}"
+                    status_color = BRAND_COLORS.get(status_color_key, BRAND_COLORS["text_dark"])
+                    
                     st.markdown(f"""
                     <div style="margin: 0.5rem 0;">
                         <span class="status-indicator {status_class}"></span>
                         {indicator['description']} 
-                        <strong style="color: {BRAND_COLORS[f'{indicator["status"].lower()}_{"red" if indicator["status"]=="RED" else "yellow" if indicator["status"]=="YELLOW" else "green"}']}"}>
+                        <strong style="color: {status_color}">
                             ({indicator['status']})
                         </strong>
                     </div>
