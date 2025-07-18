@@ -1,0 +1,74 @@
+{
+  "threats": [
+    {
+      "threat_name": "Activist Campaign Escalation",
+      "warning_threshold": 3,
+      "indicators": [
+        {
+          "description": "Increased social media mentions of Canada Goose by activist groups",
+          "status": "GREEN"
+        },
+        {
+          "description": "RDS supply chain controversies trending in target markets",
+          "status": "YELLOW"
+        },
+        {
+          "description": "Activist groups announcing coordinated protest campaigns",
+          "status": "YELLOW"
+        },
+        {
+          "description": "Media coverage focusing on ethical sourcing practices",
+          "status": "YELLOW"
+        },
+        {
+          "description": "Intelligence reports of activist logistics preparation",
+          "status": "GREEN"
+        }
+      ]
+    },
+    {
+      "threat_name": "Geopolitical Market Disruption",
+      "warning_threshold": 2,
+      "indicators": [
+        {
+          "description": "Trade policy changes affecting luxury goods imports",
+          "status": "GREEN"
+        },
+        {
+          "description": "Nationalist social media campaigns targeting Canadian brands",
+          "status": "GREEN"
+        },
+        {
+          "description": "Diplomatic tensions between Canada and key markets",
+          "status": "GREEN"
+        },
+        {
+          "description": "Currency fluctuations impacting pricing strategies",
+          "status": "GREEN"
+        }
+      ]
+    },
+    {
+      "threat_name": "Organized Retail Crime Surge",
+      "warning_threshold": 2,
+      "indicators": [
+        {
+          "description": "Increase in luxury retail theft reports in key markets",
+          "status": "GREEN"
+        },
+        {
+          "description": "Intelligence on ORC networks targeting premium brands",
+          "status": "GREEN"
+        },
+        {
+          "description": "Holiday season approach (increased criminal activity)",
+          "status": "GREEN"
+        },
+        {
+          "description": "Economic stress indicators in retail markets",
+          "status": "GREEN"
+        }
+      ]
+    }
+  ]
+}
